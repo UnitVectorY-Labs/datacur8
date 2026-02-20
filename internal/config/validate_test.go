@@ -375,6 +375,22 @@ func TestValidate_PathEqualsAttrBuiltinSegment(t *testing.T) {
 	}
 }
 
+func TestValidate_CLIPatchNewerThanConfig(t *testing.T) {
+	cfg := &Config{Version: "1.0.1", Types: []TypeDef{}}
+	_, errs := Validate(cfg, "1.0.2")
+	for _, e := range errs {
+		if strings.Contains(e.Error(), "older") || strings.Contains(e.Error(), "mismatch") {
+			t.Fatalf("CLI 1.0.2 >= config 1.0.1 should be ok, got: %v", e)
+		}
+	}
+}
+
+func TestValidate_CLIPatchOlderThanConfig(t *testing.T) {
+	cfg := &Config{Version: "1.0.3", Types: []TypeDef{}}
+	_, errs := Validate(cfg, "1.0.2")
+	requireError(t, errs, "CLI version 1.0.2 is older")
+}
+
 func TestValidate_CLIEqualToConfig(t *testing.T) {
 	cfg := &Config{Version: "1.0.0", Types: []TypeDef{}}
 	_, errs := Validate(cfg, "1.0.0")
