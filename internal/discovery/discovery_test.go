@@ -139,11 +139,11 @@ func TestDiscoverNamedCaptures(t *testing.T) {
 	}
 
 	f := files[0]
-	if f.PathCaptures["team"] != "alpha" {
-		t.Errorf("expected capture team=alpha, got %q", f.PathCaptures["team"])
+	if f.PathCaptures["path.team"] != "alpha" {
+		t.Errorf("expected capture path.team=alpha, got %q", f.PathCaptures["path.team"])
 	}
-	if f.PathCaptures["service"] != "web" {
-		t.Errorf("expected capture service=web, got %q", f.PathCaptures["service"])
+	if f.PathCaptures["path.service"] != "web" {
+		t.Errorf("expected capture path.service=web, got %q", f.PathCaptures["path.service"])
 	}
 }
 

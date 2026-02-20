@@ -191,7 +191,7 @@ func matchType(relPath string, includes, excludes []*regexp.Regexp) (map[string]
 			captures := make(map[string]string)
 			for i, name := range inc.SubexpNames() {
 				if name != "" && i < len(match) {
-					captures[name] = match[i]
+					captures["path."+name] = match[i]
 				}
 			}
 			return captures, true

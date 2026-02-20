@@ -235,7 +235,7 @@ func loadAndValidateConfig(formatOverride string, version string) (*config.Confi
 
 	configPath := filepath.Join(rootDir, ".datacur8")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fmt.Fprintln(os.Stderr, "error: .datacur8 not found in current directory")
+		fmt.Fprintln(os.Stderr, "error: .datacur8 not found in current directory. Run from repo root.")
 		return nil, "text", ExitConfigInvalid
 	}
 
