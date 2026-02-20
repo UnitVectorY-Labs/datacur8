@@ -682,3 +682,33 @@ These affect behavior but do not require user-facing config changes:
 - Performance strategy for large repos (in-memory indexing first, optimizations later)
 
 ---
+
+## Testing
+
+The test cases for this project are primarily data driven instead of code driven. Within a "tests" folder there are subfolders each with a `.datacur8` config, input files, and expected outputs. The test suite runs the CLI against each case and compares results to expected outputs. This allows for comprehensive coverage of validation logic, error messages, and export formatting without needing to write code-based unit tests for every scenario.
+
+---
+
+## Programming Philosophy
+
+This project is implemented in the Go programming language. External libraries are used but when possible the implementation favors the standard library.
+
+The main.go lives in the root of the repository but the other packages live in the internal/ directory to enforce encapsulation. The main package is responsible for CLI parsing and invoking the core logic, but the core logic lives in internal packages that could be reused in other contexts if needed.
+
+The internal packages are cleanly divided, organized and independently tested.
+
+## Documentation
+
+The docs/ folder contains files for the documentation.  The docs/README.md file is the overall "marketing" explanation for what the app does.  The COMMAND.md file outlines the command line parameters and their associated behaviors.  The CONFIGURATION.md file outlines the .datacur8 configuration file format and options.
+
+Add a new docs/CONDITIONS.md file that outlines the various conditions that are checked during validation and export, and the error messages associated with them.  This will be a reference for users to understand what went wrong when they get an error, and how to fix it.
+
+Add a new docs/INTERNALS.md file that outlines the internal architecture of the application, this includes aspects from this design doc that don't cleanly fit elsewhere.
+
+If you feel an additional documentation file is needed to neatly organize the documentation you can create that as well.
+
+## Objective
+
+The goal is to fully implement and test this design specification.  Once complete this REQUIREMENTS.md file is deleted as the relevant documentation will be refined and included in the docs/ folder.
+
+The goal is to fully implement and have tests for all of the meaningful test cases. Subagents can be used to accomplish this task as the different test cases will be independently able to be designed and implemented.
