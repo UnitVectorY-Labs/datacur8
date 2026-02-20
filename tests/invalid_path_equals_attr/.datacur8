@@ -1,0 +1,18 @@
+version: "0.0.1"
+types:
+  - name: item
+    input: json
+    match:
+      include:
+        - "^items/.*\\.json$"
+    schema:
+      type: object
+      required: ["id"]
+      properties:
+        id: { type: string }
+      additionalProperties: false
+    constraints:
+      - type: path_equals_attr
+        path_selector: "path.file"
+        references:
+          key: "$.id"
