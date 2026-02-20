@@ -1,0 +1,23 @@
+version: "0.0.1"
+types:
+  - name: product
+    input: csv
+    match:
+      include:
+        - "^data/.*\\.csv$"
+    schema:
+      type: object
+      required: ["id", "name", "price"]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        price: { type: number }
+      additionalProperties: false
+    csv:
+      delimiter: ","
+    constraints:
+      - type: unique
+        key: "$.id"
+    output:
+      path: "out/products.json"
+      format: json
