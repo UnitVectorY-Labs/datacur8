@@ -284,3 +284,8 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,eclipse,windows,intellij,visualstudiocode,go
+
+# Allow test expected export output
+!tests/**/expected/export/
+!tests/**/expected/export/out/
+!tests/**/expected/export/out/**
