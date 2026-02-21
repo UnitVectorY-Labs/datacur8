@@ -9,8 +9,6 @@ import (
 const validConfig = `
 version: "1"
 strict_mode: ENABLED
-reporting:
-  mode: json
 tidy:
   enabled: true
 types:
@@ -79,9 +77,6 @@ func TestLoadValidConfig(t *testing.T) {
 	}
 	if cfg.StrictMode != "ENABLED" {
 		t.Errorf("expected strict_mode ENABLED, got %s", cfg.StrictMode)
-	}
-	if cfg.Reporting == nil || cfg.Reporting.Mode != "json" {
-		t.Errorf("expected reporting.mode json, got %v", cfg.Reporting)
 	}
 	if len(cfg.Types) != 2 {
 		t.Fatalf("expected 2 types, got %d", len(cfg.Types))
@@ -160,9 +155,6 @@ types:
 
 	if cfg.StrictMode != "DISABLED" {
 		t.Errorf("expected default strict_mode DISABLED, got %s", cfg.StrictMode)
-	}
-	if cfg.Reporting == nil || cfg.Reporting.Mode != "text" {
-		t.Errorf("expected default reporting.mode text, got %v", cfg.Reporting)
 	}
 	if cfg.Types[0].CSV.Delimiter != "," {
 		t.Errorf("expected default csv delimiter ',', got %s", cfg.Types[0].CSV.Delimiter)

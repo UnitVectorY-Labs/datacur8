@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"encoding/json"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -96,6 +97,12 @@ func TestValidate(t *testing.T) {
 			stderrFile := filepath.Join(caseDir, "expected", "validate.stderr")
 			if data, err := os.ReadFile(stderrFile); err == nil {
 				compareLines(t, "validate stderr", stderr.String(), string(data))
+			}
+
+			// Compare stdout if expected/validate.stdout exists (for JSON format comparison).
+			stdoutFile := filepath.Join(caseDir, "expected", "validate.stdout")
+			if data, err := os.ReadFile(stdoutFile); err == nil {
+				compareJSON(t, "validate stdout", stdout.String(), string(data))
 			}
 		})
 	}
@@ -299,6 +306,31 @@ func nonEmptyLines(s string) []string {
 		}
 	}
 	return lines
+}
+
+// compareJSON compares actual and expected JSON output.
+// Both are parsed as JSON and compared structurally.
+func compareJSON(t *testing.T, label, actual, expected string) {
+	t.Helper()
+	var actualJSON, expectedJSON any
+	if err := json.Unmarshal([]byte(actual), &actualJSON); err != nil {
+		t.Errorf("%s: failed to parse actual JSON: %v\nraw:\n%s", label, err, actual)
+		return
+	}
+	if err := json.Unmarshal([]byte(expected), &expectedJSON); err != nil {
+		t.Errorf("%s: failed to parse expected JSON: %v\nraw:\n%s", label, err, expected)
+		return
+	}
+
+	actualNorm, _ := json.Marshal(actualJSON)
+	expectedNorm, _ := json.Marshal(expectedJSON)
+
+	if string(actualNorm) != string(expectedNorm) {
+		actualPretty, _ := json.MarshalIndent(actualJSON, "", "  ")
+		expectedPretty, _ := json.MarshalIndent(expectedJSON, "", "  ")
+		t.Errorf("%s: JSON differs\n--- expected ---\n%s\n--- actual ---\n%s",
+			label, string(expectedPretty), string(actualPretty))
+	}
 }
 
 // copyDir recursively copies src to dst, skipping the expected/ directory.

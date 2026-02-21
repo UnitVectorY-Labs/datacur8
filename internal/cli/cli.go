@@ -227,27 +227,27 @@ func RunTidy(dryRun bool, version string) int {
 // loadAndValidateConfig loads the .datacur8 config, applies defaults, validates it,
 // and resolves the output format. Returns the config, resolved format, and exit code.
 func loadAndValidateConfig(formatOverride string, version string) (*config.Config, string, int) {
+	resolvedFormat := "text"
+	if formatOverride != "" {
+		resolvedFormat = formatOverride
+	}
+
 	rootDir, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		return nil, "text", ExitConfigInvalid
+		reportErrors(resolvedFormat, []reportEntry{{Level: "error", Type: "config", Message: err.Error()}})
+		return nil, resolvedFormat, ExitConfigInvalid
 	}
 
 	configPath := filepath.Join(rootDir, ".datacur8")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fmt.Fprintln(os.Stderr, "error: .datacur8 not found in current directory. Run from repo root.")
-		return nil, "text", ExitConfigInvalid
+		reportErrors(resolvedFormat, []reportEntry{{Level: "error", Type: "config", Message: ".datacur8 not found in current directory. Run from repo root."}})
+		return nil, resolvedFormat, ExitConfigInvalid
 	}
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		return nil, "text", ExitConfigInvalid
-	}
-
-	resolvedFormat := cfg.Reporting.Mode
-	if formatOverride != "" {
-		resolvedFormat = formatOverride
+		reportErrors(resolvedFormat, []reportEntry{{Level: "error", Type: "config", Message: err.Error()}})
+		return nil, resolvedFormat, ExitConfigInvalid
 	}
 
 	warnings, errs := config.Validate(cfg, version)

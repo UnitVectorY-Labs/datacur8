@@ -1,20 +1,20 @@
 version: "0.0.1"
 types:
-  - name: widget
-    input: json
+  - name: item
+    input: yaml
     match:
       include:
-        - "^data/.*\\.json$"
+        - "^data/.*\\.ya?ml$"
     schema:
       type: object
-      required: ["id", "label"]
+      required: ["id", "name"]
       properties:
         id: { type: string }
-        label: { type: string }
+        name: { type: string }
       additionalProperties: false
     constraints:
       - type: unique
         key: "$.id"
     output:
-      path: "out/widgets.json"
-      format: json
+      path: "out/items.yaml"
+      format: yaml

@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "type": "config",
+    "message": "types[0](item): match.include[0] invalid regex: error parsing regexp: missing closing ]: `[invalid regex(`"
+  }
+]

@@ -41,7 +41,7 @@ datacur8 validate [--config-only] [--format text|json|yaml]
 | Flag | Description |
 |------|-------------|
 | `--config-only` | Only validate the `.datacur8` configuration file; skip data file scanning and validation |
-| `--format` | Override the output format for errors and warnings. Accepts `text`, `json`, or `yaml`. Defaults to the `reporting.mode` setting in the config |
+| `--format` | Override the output format for errors and warnings. Accepts `text`, `json`, or `yaml`. Defaults to `text` |
 
 **Behavior:**
 

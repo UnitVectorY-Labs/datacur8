@@ -26,7 +26,6 @@ No additional config files are used — including in subdirectories. If a `.data
 |-------|------|----------|---------|-------------|
 | `version` | string | **yes** | — | Minimum datacur8 version required (semver: `major.minor.patch`) |
 | `strict_mode` | string | no | `DISABLED` | One of `DISABLED`, `ENABLED`, or `FORCE` |
-| `reporting` | object | no | `{ mode: text }` | Reporting configuration |
 | `types` | array | **yes** | — | List of type definitions |
 | `tidy` | object | no | `{ enabled: true }` | Global tidy configuration |
 
@@ -43,14 +42,6 @@ Controls enforcement of `additionalProperties` on JSON schemas:
 | `DISABLED` | Schemas are evaluated as-is |
 | `ENABLED` | Object schemas without an explicit `additionalProperties` are treated as `additionalProperties: false` |
 | `FORCE` | All object schemas have `additionalProperties: false` applied, overriding any explicit `true` setting |
-
-### reporting
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `reporting.mode` | string | `text` | Output format: `text`, `json`, or `yaml` |
-
-Can be overridden at runtime with `datacur8 validate --format`.
 
 ### tidy
 

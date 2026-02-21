@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "type": "discovery",
+    "message": "found .datacur8 in subdirectory \"sub\"; only root .datacur8 is allowed"
+  }
+]

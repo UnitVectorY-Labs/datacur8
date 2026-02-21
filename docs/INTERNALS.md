@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Internals
-nav_order: 6
+nav_order: 7
 permalink: /internals
 ---
 
@@ -54,10 +54,10 @@ Validation runs in a strict sequence of phases. Each phase must succeed before t
 **Package:** `config`
 
 1. Load and parse the `.datacur8` YAML file
-2. Apply default values (strict_mode, reporting.mode, constraint scope, csv delimiter)
+2. Apply default values (strict_mode, constraint scope, csv delimiter)
 3. Validate the config structurally and semantically:
    - Version format and compatibility
-   - Valid enum values for strict_mode, reporting.mode, input, output.format
+   - Valid enum values for strict_mode, input, output.format
    - Unique type names
    - Unique output paths across types
    - Regex patterns compile successfully

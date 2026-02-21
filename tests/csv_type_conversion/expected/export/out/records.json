@@ -1,0 +1,16 @@
+{
+  "record": [
+    {
+      "active": true,
+      "count": 10,
+      "id": "r1",
+      "score": 95.5
+    },
+    {
+      "active": false,
+      "count": 20,
+      "id": "r2",
+      "score": 87.3
+    }
+  ]
+}

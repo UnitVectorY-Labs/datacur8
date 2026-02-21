@@ -9,7 +9,6 @@ func TestValidate_ValidConfig(t *testing.T) {
 	cfg := &Config{
 		Version:    "1.0.0",
 		StrictMode: "ENABLED",
-		Reporting:  &Reporting{Mode: "json"},
 		Types: []TypeDef{
 			{
 				Name:  "users",
@@ -82,16 +81,6 @@ func TestValidate_StrictModeValid(t *testing.T) {
 			}
 		}
 	}
-}
-
-func TestValidate_ReportingModeInvalid(t *testing.T) {
-	cfg := &Config{
-		Version:   "1.0.0",
-		Reporting: &Reporting{Mode: "xml"},
-		Types:     []TypeDef{},
-	}
-	_, errs := Validate(cfg, "dev")
-	requireError(t, errs, "reporting.mode")
 }
 
 func TestValidate_DuplicateTypeName(t *testing.T) {

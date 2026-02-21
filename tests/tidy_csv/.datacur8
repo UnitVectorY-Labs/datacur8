@@ -1,21 +1,17 @@
 version: "0.0.1"
 types:
-  - name: record
+  - name: product
     input: csv
     match:
       include:
         - "^data/.*\\.csv$"
     schema:
       type: object
-      required: ["id", "count", "score", "active"]
+      required: ["id", "name", "price"]
       properties:
         id: { type: string }
-        count: { type: integer }
-        score: { type: number }
-        active: { type: boolean }
+        name: { type: string }
+        price: { type: number }
       additionalProperties: false
     csv:
       delimiter: ","
-    output:
-      path: "out/records.json"
-      format: json
