@@ -392,7 +392,7 @@ Below is the initial JSON Schema (draft-agnostic usage is acceptable as long as 
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://datacur8.dev/schemas/config.schema.json",
+  "$id": "https://datacur8.unitvectorylabs.com/schemas/config.schema.json",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "types"],

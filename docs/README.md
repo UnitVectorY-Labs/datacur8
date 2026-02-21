@@ -58,43 +58,18 @@ datacur8 is a config-driven command-line tool that validates, exports, and tidie
 
 2. Run validation:
 
-   ```sh
+   ```bash
    datacur8 validate
    ```
 
 3. Export compiled outputs:
 
-   ```sh
+   ```bash
    datacur8 export
    ```
 
 4. Normalize formatting:
 
-   ```sh
+   ```bash
    datacur8 tidy
    ```
-
-## Git Workflow Integration
-
-datacur8 is designed to fit naturally into a git-based workflow:
-
-1. **Local development** — run `datacur8 validate` before committing to catch errors early
-2. **CI/CD** — add `datacur8 validate` (and optionally `datacur8 export`) to your pipeline
-3. **Pull requests** — run `datacur8 tidy` to normalize formatting, then commit the changes for clean diffs
-4. **GitHub Actions** — install the datacur8 binary and run it directly; the CLI contains all validation logic so local and CI results always match
-
-```yaml
-# Example GitHub Actions step
-- name: Validate data
-  run: datacur8 validate
-```
-
-## Documentation
-
-| Page | Description |
-|------|-------------|
-| [Command Line Reference](/command) | All commands, flags, and exit codes |
-| [Configuration Reference](/configuration) | Full `.datacur8` config file specification |
-| [Examples](/examples) | Complete working examples |
-| [Conditions](/conditions) | Validation errors and how to fix them |
-| [Internals](/internals) | Architecture and design details |

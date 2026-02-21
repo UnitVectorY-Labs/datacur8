@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://datacur8.unitvectorylabs.com/schemas/config.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "types"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Minimum datacur8 version required by this config.",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "strict_mode": {
+      "type": "string",
+      "enum": [
+        "DISABLED",
+        "ENABLED",
+        "FORCE"
+      ],
+      "default": "DISABLED"
+    },
+    "reporting": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "text",
+            "json",
+            "yaml"
+          ],
+          "default": "text"
+        }
+      }
+    },
+    "types": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "$ref": "#/$defs/typeDef"
+      }
+    },
+    "tidy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "selector": {
+      "type": "string",
+      "minLength": 1
+    },
+    "keyRef": {
+      "$ref": "#/$defs/selector"
+    },
+    "pathSelector": {
+      "type": "string",
+      "pattern": "^path\\.(file|parent|ext|[a-zA-Z_][a-zA-Z0-9_]*)$"
+    },
+    "typeDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "input",
+        "match",
+        "schema"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+        },
+        "input": {
+          "type": "string",
+          "enum": [
+            "json",
+            "yaml",
+            "csv"
+          ]
+        },
+        "match": {
+          "$ref": "#/$defs/matchDef"
+        },
+        "schema": {
+          "type": "object",
+          "description": "Inline JSON Schema applied to each parsed item. Root type must be object.",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "object"
+            }
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/constraintDef"
+          },
+          "default": []
+        },
+        "output": {
+          "$ref": "#/$defs/outputDef"
+        },
+        "csv": {
+          "$ref": "#/$defs/csvDef"
+        },
+        "tidy": {
+          "$ref": "#/$defs/typeTidyDef"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "input": {
+                "const": "csv"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "csv"
+            ]
+          }
+        }
+      ]
+    },
+    "matchDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "include"
+      ],
+      "properties": {
+        "include": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    },
+    "csvDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "delimiter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "default": ","
+        }
+      }
+    },
+    "typeTidyDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sort_arrays_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "outputDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "format"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "json",
+            "yaml",
+            "jsonl"
+          ]
+        }
+      }
+    },
+    "constraintDef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/uniqueConstraintDef"
+        },
+        {
+          "$ref": "#/$defs/foreignKeyConstraintDef"
+        },
+        {
+          "$ref": "#/$defs/pathEqualsAttrConstraintDef"
+        }
+      ]
+    },
+    "uniqueConstraintDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "key"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "unique"
+        },
+        "key": {
+          "$ref": "#/$defs/keyRef"
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "default": true
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "item",
+            "type"
+          ],
+          "default": "type"
+        }
+      }
+    },
+    "foreignKeyRefDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "key"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "$ref": "#/$defs/keyRef"
+        }
+      }
+    },
+    "foreignKeyConstraintDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "key",
+        "references"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "foreign_key"
+        },
+        "key": {
+          "$ref": "#/$defs/keyRef"
+        },
+        "references": {
+          "$ref": "#/$defs/foreignKeyRefDef"
+        }
+      }
+    },
+    "pathEqualsAttrConstraintDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "path_selector",
+        "references"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "const": "path_equals_attr"
+        },
+        "path_selector": {
+          "$ref": "#/$defs/pathSelector"
+        },
+        "references": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key"
+          ],
+          "properties": {
+            "key": {
+              "$ref": "#/$defs/keyRef"
+            }
+          }
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}
