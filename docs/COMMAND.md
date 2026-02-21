@@ -71,9 +71,11 @@ Output formats:
 
 | Format | Description |
 |--------|-------------|
-| `json` | JSON array wrapped in an object keyed by the type name |
-| `yaml` | YAML array wrapped in an object keyed by the type name |
+| `json` | JSON object with one key (the type name) whose value is the exported array |
+| `yaml` | YAML object with one key (the type name) whose value is the exported array |
 | `jsonl` | One minified JSON object per line |
+
+For example, if the type is `foo`, the JSON/YAML output root key is `foo`; if the type is `bar`, the root key is `bar`.
 
 Items are ordered deterministically: by type order in config, then by file path, then by within-file order (for CSV rows).
 

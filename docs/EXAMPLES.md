@@ -298,7 +298,7 @@ types:
 
 This example shows exporting the same data in different formats.
 
-### JSON array export
+### JSON export
 
 ```yaml
 output:
@@ -317,7 +317,7 @@ Produces:
 }
 ```
 
-### YAML array export
+### YAML export
 
 ```yaml
 output:

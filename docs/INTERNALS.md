@@ -179,9 +179,9 @@ Export produces deterministic output through strict ordering rules:
 
 ### Output formats
 
-- **JSON**: Items are wrapped in an object keyed by the type name, with the value being a JSON array. Pretty-printed with 2-space indentation.
+- **JSON**: Items are wrapped in an object keyed by the type name, with the value being an array. Pretty-printed with 2-space indentation.
 - **YAML**: Same structure as JSON but serialized as YAML.
-- **JSONL**: One minified JSON object per line, no wrapper object.
+- **JSONL**: One minified JSON object per line.
 
 Output directories are created automatically if they don't exist.
 
