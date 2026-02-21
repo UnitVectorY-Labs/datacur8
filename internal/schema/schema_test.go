@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -246,6 +247,30 @@ func TestValidateItem_NumberSchema(t *testing.T) {
 	errs = ValidateItem(s, float64(200), "DISABLED")
 	if len(errs) == 0 {
 		t.Error("expected validation errors for number exceeding maximum")
+	}
+	if strings.Contains(errs[0].Error(), "/") {
+		t.Errorf("expected decimal numeric value in error, got: %s", errs[0].Error())
+	}
+	if !strings.Contains(errs[0].Error(), "200") {
+		t.Errorf("expected original numeric value in error, got: %s", errs[0].Error())
+	}
+}
+
+func TestValidateItem_NumberSchema_RationalErrorIsNormalized(t *testing.T) {
+	s := map[string]any{
+		"type":    "number",
+		"maximum": float64(6),
+	}
+
+	errs := ValidateItem(s, float64(95.5), "DISABLED")
+	if len(errs) == 0 {
+		t.Fatal("expected validation errors for number exceeding maximum")
+	}
+	if strings.Contains(errs[0].Error(), "191/2") || strings.Contains(errs[0].Error(), "/") {
+		t.Errorf("expected fraction to be normalized to decimal, got: %s", errs[0].Error())
+	}
+	if !strings.Contains(errs[0].Error(), "95.5") {
+		t.Errorf("expected decimal value 95.5 in error, got: %s", errs[0].Error())
 	}
 }
 

@@ -1,0 +1,16 @@
+[
+  {
+    "level": "error",
+    "type": "record",
+    "file": "data/records.csv",
+    "row": 0,
+    "message": "validating root: validating /properties/score: maximum: 95.5 is greater than 6.000000"
+  },
+  {
+    "level": "error",
+    "type": "record",
+    "file": "data/records.csv",
+    "row": 1,
+    "message": "validating root: validating /properties/score: maximum: 87.3 is greater than 6.000000"
+  }
+]

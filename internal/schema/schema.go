@@ -2,7 +2,12 @@ package schema
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
+	"math/big"
+	"regexp"
+	"strconv"
 
 	"github.com/google/jsonschema-go/jsonschema"
 )
@@ -29,10 +34,29 @@ func ValidateItem(schemaMap map[string]any, data any, strictMode string) []error
 	}
 
 	if err := resolved.Validate(data); err != nil {
-		return []error{err}
+		return []error{errors.New(normalizeValidationMessage(err.Error()))}
 	}
 
 	return nil
+}
+
+var rationalNumberPattern = regexp.MustCompile(`\b\d+/\d+\b`)
+
+// normalizeValidationMessage makes library-generated numeric values easier to read.
+// jsonschema-go can render float64 values as exact rationals (for example 191/2),
+// which is correct but noisy in CLI output.
+func normalizeValidationMessage(msg string) string {
+	return rationalNumberPattern.ReplaceAllStringFunc(msg, func(s string) string {
+		r := new(big.Rat)
+		if _, ok := r.SetString(s); !ok {
+			return s
+		}
+		f, _ := r.Float64()
+		if math.IsInf(f, 0) || math.IsNaN(f) {
+			return s
+		}
+		return strconv.FormatFloat(f, 'g', -1, 64)
+	})
 }
 
 // ApplyStrictMode returns a deep copy of the schema with strict_mode overlay applied.
