@@ -10,13 +10,8 @@ import (
 type Config struct {
 	Version    string      `yaml:"version"`
 	StrictMode string      `yaml:"strict_mode,omitempty"`
-	Reporting  *Reporting  `yaml:"reporting,omitempty"`
 	Types      []TypeDef   `yaml:"types"`
 	Tidy       *TidyConfig `yaml:"tidy,omitempty"`
-}
-
-type Reporting struct {
-	Mode string `yaml:"mode,omitempty"`
 }
 
 type TypeDef struct {
@@ -91,13 +86,6 @@ func Load(path string) (*Config, error) {
 func (c *Config) Defaults() {
 	if c.StrictMode == "" {
 		c.StrictMode = "DISABLED"
-	}
-
-	if c.Reporting == nil {
-		c.Reporting = &Reporting{}
-	}
-	if c.Reporting.Mode == "" {
-		c.Reporting.Mode = "text"
 	}
 
 	for i := range c.Types {

@@ -50,16 +50,7 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 		errs = append(errs, fmt.Errorf("strict_mode %q is invalid; must be DISABLED, ENABLED, or FORCE", cfg.StrictMode))
 	}
 
-	// 5. reporting.mode
-	if cfg.Reporting != nil {
-		switch cfg.Reporting.Mode {
-		case "", "text", "json", "yaml":
-		default:
-			errs = append(errs, fmt.Errorf("reporting.mode %q is invalid; must be text, json, or yaml", cfg.Reporting.Mode))
-		}
-	}
-
-	// 6. types
+	// 5. types
 	typeNames := make(map[string]bool, len(cfg.Types))
 	outputPaths := make(map[string]string) // path -> type name
 

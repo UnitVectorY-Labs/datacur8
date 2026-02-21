@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "order",
+    "file": "orders/o1.json",
+    "message": "[foreign_key] foreign key \"nonexistent\" not found in product.$.id"
+  }
+]

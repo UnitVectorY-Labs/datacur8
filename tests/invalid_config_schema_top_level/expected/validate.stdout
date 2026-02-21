@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "type": "config",
+    "message": "configuration does not match schema: validating https://datacur8.unitvectorylabs.com/schemas/config.schema.json: unexpected additional properties [\"extra_top_level\"]"
+  }
+]

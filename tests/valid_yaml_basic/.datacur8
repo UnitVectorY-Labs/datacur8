@@ -1,7 +1,5 @@
 version: "0.0.1"
 strict_mode: DISABLED
-reporting:
-  mode: text
 types:
   - name: team
     input: yaml

@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "item",
+    "file": "items/wrong_name.json",
+    "message": "[path_equals_attr] path value \"wrong_name\" does not match attribute value \"correct_id\""
+  }
+]

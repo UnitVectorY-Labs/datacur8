@@ -22,21 +22,7 @@
       ],
       "default": "DISABLED"
     },
-    "reporting": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "mode": {
-          "type": "string",
-          "enum": [
-            "text",
-            "json",
-            "yaml"
-          ],
-          "default": "text"
-        }
-      }
-    },
+
     "types": {
       "type": "array",
       "minItems": 0,
