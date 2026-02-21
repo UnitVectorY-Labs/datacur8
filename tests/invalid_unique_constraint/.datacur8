@@ -1,0 +1,17 @@
+version: "0.0.1"
+types:
+  - name: item
+    input: json
+    match:
+      include:
+        - "^data/.*\\.json$"
+    schema:
+      type: object
+      required: ["id", "name"]
+      properties:
+        id: { type: string }
+        name: { type: string }
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"

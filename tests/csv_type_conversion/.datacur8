@@ -1,0 +1,18 @@
+version: "0.0.1"
+types:
+  - name: record
+    input: csv
+    match:
+      include:
+        - "^data/.*\\.csv$"
+    schema:
+      type: object
+      required: ["id", "count", "score", "active"]
+      properties:
+        id: { type: string }
+        count: { type: integer }
+        score: { type: number }
+        active: { type: boolean }
+      additionalProperties: false
+    csv:
+      delimiter: ","

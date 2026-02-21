@@ -1,0 +1,10 @@
+types:
+  - name: item
+    input: json
+    match:
+      include:
+        - "^data/.*\\.json$"
+    schema:
+      type: object
+      properties:
+        id: { type: string }

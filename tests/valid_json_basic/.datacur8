@@ -1,0 +1,17 @@
+version: "0.0.1"
+types:
+  - name: widget
+    input: json
+    match:
+      include:
+        - "^data/.*\\.json$"
+    schema:
+      type: object
+      required: ["id", "label"]
+      properties:
+        id: { type: string }
+        label: { type: string }
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"

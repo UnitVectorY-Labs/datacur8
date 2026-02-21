@@ -1,0 +1,36 @@
+version: "0.0.1"
+types:
+  - name: product
+    input: json
+    match:
+      include:
+        - "^products/.*\\.json$"
+    schema:
+      type: object
+      required: ["id"]
+      properties:
+        id: { type: string }
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"
+  - name: order
+    input: json
+    match:
+      include:
+        - "^orders/.*\\.json$"
+    schema:
+      type: object
+      required: ["id", "productId"]
+      properties:
+        id: { type: string }
+        productId: { type: string }
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"
+      - type: foreign_key
+        key: "$.productId"
+        references:
+          type: product
+          key: "$.id"
