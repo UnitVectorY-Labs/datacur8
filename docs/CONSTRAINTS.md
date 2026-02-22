@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Constraints
-nav_order: 5
+parent: Configuration
+nav_order: 1
 permalink: /constraints
 ---
 
@@ -43,13 +44,19 @@ Path-based constraints use `path_selector` with one of:
 - `path.ext` (normalized extension)
 - `path.<capture>` from named regex groups in `match.include`
 
-## `unique`
+## Available Constraints
 
-### Why use it
+| Goal | Constraint |
+|------|------------|
+| Ensure IDs are never duplicated | `unique` |
+| Ensure a value exists in another type | `foreign_key` |
+| Ensure path naming matches data fields | `path_equals_attr` |
+
+### `unique`
 
 Use `unique` to prevent duplicate identifiers in one type, or duplicate values inside a single item.
 
-### Attributes
+#### Attributes
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
@@ -59,7 +66,7 @@ Use `unique` to prevent duplicate identifiers in one type, or duplicate values i
 | `case_sensitive` | boolean | no | `true` | String comparison mode |
 | `id` | string | no | — | Optional identifier |
 
-### Minimal example
+#### Example
 
 ```yaml
 constraints:
@@ -67,13 +74,11 @@ constraints:
     key: "$.id"
 ```
 
-## `foreign_key`
-
-### Why use it
+### `foreign_key`
 
 Use `foreign_key` to enforce referential integrity between types (for example, `service.teamId` must exist in `team.id`).
 
-### Attributes
+#### Attributes
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -83,7 +88,7 @@ Use `foreign_key` to enforce referential integrity between types (for example, `
 | `references.key` | string | **yes** | Selector on referenced type items |
 | `id` | string | no | Optional identifier |
 
-### Minimal example
+#### Example
 
 ```yaml
 constraints:
@@ -94,9 +99,7 @@ constraints:
       key: "$.id"
 ```
 
-## `path_equals_attr`
-
-### Why use it
+### `path_equals_attr`
 
 Use `path_equals_attr` to enforce filename/folder conventions against data attributes.
 
@@ -105,7 +108,7 @@ Typical use cases:
 - folder name must match `teamId`
 - named path capture must match an attribute
 
-### Attributes
+#### Attributes
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
@@ -115,7 +118,7 @@ Typical use cases:
 | `case_sensitive` | boolean | no | `true` | String comparison mode |
 | `id` | string | no | — | Optional identifier |
 
-### Minimal example
+#### Example
 
 ```yaml
 match:
@@ -127,11 +130,3 @@ constraints:
     references:
       key: "$.teamId"
 ```
-
-## Choosing The Right Constraint
-
-| Goal | Constraint |
-|------|------------|
-| Ensure IDs are never duplicated | `unique` |
-| Ensure a value exists in another type | `foreign_key` |
-| Ensure path naming matches data fields | `path_equals_attr` |

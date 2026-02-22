@@ -1,0 +1,14 @@
+[
+  {
+    "level": "error",
+    "type": "item",
+    "file": "data/a.json",
+    "message": "[unique] duplicate value \"dup\" for key $.id"
+  },
+  {
+    "level": "error",
+    "type": "item",
+    "file": "data/b.json",
+    "message": "[unique] duplicate value \"dup\" for key $.id"
+  }
+]

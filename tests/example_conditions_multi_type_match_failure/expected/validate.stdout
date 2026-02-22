@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "type": "discovery",
+    "message": "file \"data/overlap.json\" matches multiple types: typeA, typeB"
+  }
+]

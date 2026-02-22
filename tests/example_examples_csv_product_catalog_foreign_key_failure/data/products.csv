@@ -1,0 +1,4 @@
+sku,name,price,category_id,active
+LAPTOP-001,Gaming Laptop,1299.99,electronics,true
+TSHIRT-001,Cotton T-Shirt,19.99,missing-category,true
+PHONE-001,Smartphone,799.00,electronics,false

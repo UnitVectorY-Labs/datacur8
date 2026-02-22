@@ -1,0 +1,20 @@
+version: "0.0.1"
+types:
+  - name: typeA
+    input: json
+    match:
+      include:
+        - "^data/.*\\.json$"
+    schema:
+      type: object
+      properties:
+        id: { type: string }
+  - name: typeB
+    input: json
+    match:
+      include:
+        - "^data/.*\\.json$"
+    schema:
+      type: object
+      properties:
+        id: { type: string }

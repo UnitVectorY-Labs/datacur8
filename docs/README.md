@@ -39,23 +39,36 @@ datacur8 is a config-driven command-line tool that validates, exports, and tidie
 1. Create a `.datacur8` file in your repository root:
 
    ```yaml
-   version: "1.0.0"
+   version: "0.0.1" # Minimum version of datacur8 required for this config
    types:
+     # Defines the type of 'team' to manage data
      - name: team
        input: yaml
        match:
          include:
+           # Specify where the files are located
            - "^teams/.*\\.ya?ml$"
+       # JSON Schema to validate each file
        schema:
          type: object
          required: ["id", "name"]
          properties:
-           id: { type: string }
-           name: { type: string }
+           id: { type: number, minimum: 1 }
+           name: { type: string, maxLength: 100 }
          additionalProperties: false
        constraints:
+         # Ensure the ID is unique across all team files
          - type: unique
            key: "$.id"
+         # Ensure the file name (without extension) matches the team ID
+         - type: path_equals_attr
+           path_selector: "path.file"
+           references:
+             key: "$.id"
+       output:
+         # Export validated team data to this directory
+         format: jsonl
+         path: "out/teams.jsonl"
    ```
 
 2. Run validation:

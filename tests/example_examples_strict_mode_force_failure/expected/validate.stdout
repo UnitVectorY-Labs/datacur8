@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "item",
+    "file": "data/extra.json",
+    "message": "validating root: unexpected additional properties [\"bonus\"]"
+  }
+]

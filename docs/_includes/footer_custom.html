@@ -1,0 +1,10 @@
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".nav-list-expander").forEach(function (button) {
+    var item = button.closest(".nav-list-item");
+    if (!item) return;
+    item.classList.add("active");
+    button.setAttribute("aria-expanded", "true");
+  });
+});
+</script>

@@ -1,0 +1,63 @@
+version: "0.0.1"
+strict_mode: DISABLED
+types:
+  - name: team
+    input: yaml
+    match:
+      include:
+        - "^configs/teams/(?P<team>[^/]+)\\.ya?ml$"
+    schema:
+      type: object
+      required: ["id", "name"]
+      properties:
+        id: { type: string }
+        name: { type: string }
+      additionalProperties: false
+    constraints:
+      - id: team_id_unique
+        type: unique
+        key: "$.id"
+      - id: team_path_matches_id
+        type: path_equals_attr
+        path_selector: "path.team"
+        references:
+          key: "$.id"
+    output:
+      path: "out/teams.json"
+      format: json
+  - name: service
+    input: yaml
+    match:
+      include:
+        - "^configs/teams/(?P<team>[^/]+)/services/(?P<service>[^/]+)\\.ya?ml$"
+    schema:
+      type: object
+      required: ["id", "name", "teamId"]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        teamId: { type: string }
+      additionalProperties: false
+    constraints:
+      - id: service_id_unique
+        type: unique
+        key: "$.id"
+      - id: service_team_fk
+        type: foreign_key
+        key: "$.teamId"
+        references:
+          type: team
+          key: "$.id"
+      - id: service_path_team_matches_teamId
+        type: path_equals_attr
+        path_selector: "path.team"
+        references:
+          key: "$.teamId"
+      - id: service_file_matches_id
+        type: path_equals_attr
+        path_selector: "path.file"
+        references:
+          key: "$.id"
+    output:
+      path: "out/services.jsonl"
+      format: jsonl

@@ -2,6 +2,7 @@
 layout: default
 title: Internals
 nav_order: 7
+has_children: true
 permalink: /internals
 ---
 
@@ -9,6 +10,8 @@ permalink: /internals
 {: .no_toc }
 
 Internal architecture and design details for datacur8.
+
+For the data-driven fixture contract used by the integration suite, see [Data-Driven Tests](/data-driven-tests).
 
 ## Table of contents
 {: .no_toc .text-delta }
@@ -133,24 +136,6 @@ When a selector yields multiple values for a single item:
 - **unique** with `scope: item`: all values within one item must be unique
 - **foreign_key**: invalid — requires a single scalar value
 - **path_equals_attr**: invalid — requires a single scalar value
-
-## Strict Mode
-
-Strict mode is implemented as a schema overlay applied at validation time, not by modifying the config on disk.
-
-### DISABLED
-
-Schemas are passed to the validator exactly as defined.
-
-### ENABLED
-
-Before validation, the schema is traversed recursively. For every object schema that does not explicitly set `additionalProperties`, the overlay inserts `additionalProperties: false`. Explicit settings (`true` or `false`) are preserved.
-
-### FORCE
-
-Same as ENABLED, but `additionalProperties: true` is overridden to `false`. Only `additionalProperties` set to a schema object (not boolean) is preserved.
-
-The overlay function walks the schema tree, visiting `properties`, `items`, `allOf`, `anyOf`, `oneOf`, `if`, `then`, `else`, and `additionalProperties` (when it is a schema object).
 
 ## CSV Parsing
 

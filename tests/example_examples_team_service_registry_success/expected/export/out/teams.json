@@ -1,0 +1,12 @@
+{
+  "team": [
+    {
+      "id": "alpha",
+      "name": "Alpha Team"
+    },
+    {
+      "id": "beta",
+      "name": "Beta Team"
+    }
+  ]
+}

@@ -28,7 +28,7 @@ error: .datacur8 not found in current directory. Run from repo root.
 
 ## Commands
 
-### validate
+### `validate`
 
 Validate the configuration and all data files.
 
@@ -55,7 +55,7 @@ datacur8 validate [--config-only] [--format text|json|yaml]
 
 If no types are configured, validation is a no-op (config schema is still validated) and exits successfully.
 
-### export
+### `export`
 
 Export validated data to configured output files.
 
@@ -79,7 +79,7 @@ For example, if the type is `foo`, the JSON/YAML output root key is `foo`; if th
 
 Items are ordered deterministically: by type order in config, then by file path, then by within-file order (for CSV rows).
 
-### tidy
+### `tidy`
 
 Normalize file formatting for stable diffs.
 
@@ -101,7 +101,7 @@ datacur8 tidy [--dry-run]
 
 Tidy does not change parsed data values. If the global `tidy.enabled` is set to `false`, tidy exits immediately.
 
-### version
+### `version`
 
 Print the datacur8 version.
 
