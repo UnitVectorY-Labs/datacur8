@@ -25,7 +25,7 @@ permalink: /
 
 In the first case you are spending engineering time not addressing your core business problems. In the second path, there’s nothing enforcing schemas, uniqueness, foreign keys, naming conventions, or basic consistency, so mistakes slip through and surface later as production incidents.
 
-**The solution:** `datacur8` gives you the middle ground. You define data types, schemas, and constraints once in a single standard `.datacur8` file. Then `datacur8` deterministically validates the entire data set locally, emits clear errors, and runs the same checks in a deployment pipeline. That means non-technical or semi-technical contributors can safely edit plain-text files through workflows they already use (like GitHub pull requests), while `datacur8` provides the guardrails to ensure changes are validated and deployable before they ship.
+**This solution:** gives you the middle ground. You define data types, schemas, and constraints once in a single standard `.datacur8` file. Then **datacur8** deterministically validates the entire data set locally, emits clear errors, and runs the same checks in a deployment pipeline. That means non-technical or semi-technical contributors can safely edit plain-text files through workflows they already use (like GitHub pull requests), while **datacur8** provides the guardrails to ensure changes are validated and deployable before they ship.
 
 ![datacur8 diagram](overview.excalidraw.svg)
 
