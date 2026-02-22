@@ -7,36 +7,35 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
 // TidyResult tracks what was tidied
 type TidyResult struct {
-	Path    string
-	Changed bool // Whether the file was actually modified
+	Path     string
+	Changed  bool   // Whether the file was actually modified
+	Original []byte // Original file content
+	Tidied   []byte // Tidied file content
 }
 
 // TidyFile tidies a single file.
 // input is the file format: "json", "yaml", "csv"
-// sortArraysBy is the list of selectors to sort arrays by (from type tidy config), can be nil
-// csvDelimiter is the delimiter for CSV files
 // dryRun: if true, don't write changes, just report if they would change
-func TidyFile(path string, input string, sortArraysBy []string, csvDelimiter string, dryRun bool) (TidyResult, error) {
+func TidyFile(path string, input string, dryRun bool) (TidyResult, error) {
 	switch input {
 	case "json":
-		return tidyJSON(path, sortArraysBy, dryRun)
+		return tidyJSON(path, dryRun)
 	case "yaml":
-		return tidyYAML(path, sortArraysBy, dryRun)
+		return tidyYAML(path, dryRun)
 	case "csv":
-		return tidyCSV(path, sortArraysBy, csvDelimiter, dryRun)
+		return tidyCSV(path, dryRun)
 	default:
 		return TidyResult{Path: path}, fmt.Errorf("unsupported input format: %s", input)
 	}
 }
 
-func tidyJSON(path string, sortArraysBy []string, dryRun bool) (TidyResult, error) {
+func tidyJSON(path string, dryRun bool) (TidyResult, error) {
 	original, err := os.ReadFile(path)
 	if err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("reading file: %w", err)
@@ -48,9 +47,6 @@ func tidyJSON(path string, sortArraysBy []string, dryRun bool) (TidyResult, erro
 	}
 
 	data = sortKeys(data)
-	if len(sortArraysBy) > 0 {
-		data = sortArrays(data, sortArraysBy)
-	}
 
 	tidied, err := marshalJSONIndent(data)
 	if err != nil {
@@ -64,7 +60,7 @@ func tidyJSON(path string, sortArraysBy []string, dryRun bool) (TidyResult, erro
 		}
 	}
 
-	return TidyResult{Path: path, Changed: changed}, nil
+	return TidyResult{Path: path, Changed: changed, Original: original, Tidied: tidied}, nil
 }
 
 func marshalJSONIndent(data any) ([]byte, error) {
@@ -78,7 +74,7 @@ func marshalJSONIndent(data any) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func tidyYAML(path string, sortArraysBy []string, dryRun bool) (TidyResult, error) {
+func tidyYAML(path string, dryRun bool) (TidyResult, error) {
 	original, err := os.ReadFile(path)
 	if err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("reading file: %w", err)
@@ -91,9 +87,6 @@ func tidyYAML(path string, sortArraysBy []string, dryRun bool) (TidyResult, erro
 
 	data = normalizeYAML(data)
 	data = sortKeys(data)
-	if len(sortArraysBy) > 0 {
-		data = sortArrays(data, sortArraysBy)
-	}
 
 	buf := &bytes.Buffer{}
 	enc := yaml.NewEncoder(buf)
@@ -113,7 +106,7 @@ func tidyYAML(path string, sortArraysBy []string, dryRun bool) (TidyResult, erro
 		}
 	}
 
-	return TidyResult{Path: path, Changed: changed}, nil
+	return TidyResult{Path: path, Changed: changed, Original: original, Tidied: tidied}, nil
 }
 
 // normalizeYAML converts YAML-decoded data to JSON-like structures (map[string]any).
@@ -138,19 +131,13 @@ func normalizeYAML(v any) any {
 	}
 }
 
-func tidyCSV(path string, sortArraysBy []string, delimiter string, dryRun bool) (TidyResult, error) {
+func tidyCSV(path string, dryRun bool) (TidyResult, error) {
 	original, err := os.ReadFile(path)
 	if err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("reading file: %w", err)
 	}
 
-	delim := ','
-	if len(delimiter) > 0 {
-		delim = rune(delimiter[0])
-	}
-
 	reader := csv.NewReader(bytes.NewReader(original))
-	reader.Comma = delim
 	records, err := reader.ReadAll()
 	if err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("parsing CSV: %w", err)
@@ -164,8 +151,8 @@ func tidyCSV(path string, sortArraysBy []string, delimiter string, dryRun bool) 
 
 	// Build sorted column index
 	type colInfo struct {
-		name     string
-		origIdx  int
+		name    string
+		origIdx int
 	}
 	cols := make([]colInfo, len(headers))
 	for i, h := range headers {
@@ -187,34 +174,8 @@ func tidyCSV(path string, sortArraysBy []string, delimiter string, dryRun bool) 
 		sorted[i] = newRow
 	}
 
-	// Sort data rows if sortArraysBy is configured
-	if len(sortArraysBy) > 0 && len(sorted) > 1 {
-		// Build a map from column name to new index
-		colIndex := make(map[string]int, len(cols))
-		for i, c := range cols {
-			colIndex[c.name] = i
-		}
-
-		dataRows := sorted[1:]
-		sort.SliceStable(dataRows, func(i, j int) bool {
-			for _, key := range sortArraysBy {
-				idx, ok := colIndex[key]
-				if !ok {
-					continue
-				}
-				vi := dataRows[i][idx]
-				vj := dataRows[j][idx]
-				if vi != vj {
-					return vi < vj
-				}
-			}
-			return false
-		})
-	}
-
 	buf := &bytes.Buffer{}
 	writer := csv.NewWriter(buf)
-	writer.Comma = delim
 	if err := writer.WriteAll(sorted); err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("writing CSV: %w", err)
 	}
@@ -228,7 +189,7 @@ func tidyCSV(path string, sortArraysBy []string, delimiter string, dryRun bool) 
 		}
 	}
 
-	return TidyResult{Path: path, Changed: changed}, nil
+	return TidyResult{Path: path, Changed: changed, Original: original, Tidied: tidied}, nil
 }
 
 // sortKeys recursively sorts all object keys in the data structure.
@@ -244,53 +205,6 @@ func sortKeys(data any) any {
 		out := make([]any, len(v))
 		for i, val := range v {
 			out[i] = sortKeys(val)
-		}
-		return out
-	default:
-		return data
-	}
-}
-
-// sortArrays sorts top-level arrays (or arrays nested in objects) by the given field names.
-func sortArrays(data any, keys []string) any {
-	switch v := data.(type) {
-	case map[string]any:
-		out := make(map[string]any, len(v))
-		for k, val := range v {
-			out[k] = sortArrays(val, keys)
-		}
-		return out
-	case []any:
-		out := make([]any, len(v))
-		copy(out, v)
-
-		// Only sort if elements are maps
-		allMaps := true
-		for _, el := range out {
-			if _, ok := el.(map[string]any); !ok {
-				allMaps = false
-				break
-			}
-		}
-
-		if allMaps && len(keys) > 0 {
-			sort.SliceStable(out, func(i, j int) bool {
-				mi := out[i].(map[string]any)
-				mj := out[j].(map[string]any)
-				for _, key := range keys {
-					vi := fmt.Sprintf("%v", mi[key])
-					vj := fmt.Sprintf("%v", mj[key])
-					if vi != vj {
-						return strings.Compare(vi, vj) < 0
-					}
-				}
-				return false
-			})
-		}
-
-		// Recurse into array elements
-		for i, el := range out {
-			out[i] = sortArrays(el, keys)
 		}
 		return out
 	default:

@@ -5,24 +5,22 @@ nav_order: 1
 permalink: /
 ---
 
-# datacur8
-{: .no_toc }
+# What is datacur8?
 
-## Table of contents
-{: .no_toc .text-delta }
+**datacur8** is a config-driven command-line tool that validates, exports, and tidies structured data files (JSON, YAML, and CSV) intended to live in a Git repository. It brings database-style integrity checks to file-based datasets, without forcing you to build a database app.
 
-1. TOC
-{:toc}
+**The problem:** When teams need to manage “slow-moving” datasets, they usually end up in one of two bad places:
 
-## What is datacur8?
+1. Build a custom CRUD application just to edit and release data, or  
+2. Rely on a messy mix of Excel sheets, ad hoc CSVs, and hand-edited property files with no consistent rules.
 
-datacur8 is a config-driven command-line tool that validates, exports, and tidies structured data files (JSON, YAML, and CSV) stored in a repository. It brings database-level data integrity to file-based datasets managed in git.
+In the first case you are spending engineering time not addressing your core business problems. In the second path, there’s nothing enforcing schemas, uniqueness, foreign keys, naming conventions, or basic consistency, so mistakes slip through and surface later as production incidents.
 
-**The problem:** Teams often manage configuration, catalog, or reference data as files in a git repository. Without tooling, there is no way to enforce schemas, uniqueness, foreign key relationships, or naming conventions. Errors accumulate silently until they cause production incidents.
-
-**The solution:** datacur8 reads a single `.datacur8` configuration file that declares your data types, schemas, and constraints. It validates every file deterministically, produces clear error messages, and runs identically locally and in CI.
+**This solution** gives you the middle ground. You define data types, schemas, and constraints once in a single standard `.datacur8` file. Then **datacur8** deterministically validates the entire data set locally, emits clear errors, and runs the same checks in a deployment pipeline. That means non-technical or semi-technical contributors can safely edit plain-text files through workflows they already use (like GitHub pull requests), while **datacur8** provides the guardrails to ensure changes are validated and deployable before they ship.
 
 ![datacur8 diagram](overview.excalidraw.svg)
+
+---
 
 ## Key Features
 
@@ -34,12 +32,16 @@ datacur8 is a config-driven command-line tool that validates, exports, and tidie
 - **CSV support** — schema-guided type conversion with header validation
 - **Git-friendly** — designed for CI pipelines; identical results locally and in automation
 
+---
+
 ## Quick Start
+
+The following provides an example of a realistic starting place for how **datacur8** can be used to manage a realistic dataset where you have multiple data types that are related to each other and you want to enforce constraints within and across them. In this example, we have a simple dataset of teams and apps, where each team has multiple apps and we want to ensure that all the data is consistent and valid before it gets deployed. You want fields within the files to match the file names and you want the JSON Schema to enforce the structure of the YAML files.
 
 1. Create a `.datacur8` file in your repository root:
 
    ```yaml
-   version: "0.0.1" # Minimum version of datacur8 required for this config
+   version: "0.0.0" # Minimum version of datacur8 required for this config
    types:
      # Defines the type of 'team' to manage data
      - name: team
@@ -47,7 +49,7 @@ datacur8 is a config-driven command-line tool that validates, exports, and tidie
        match:
          include:
            # Specify where the files are located
-           - "^teams/.*\\.ya?ml$"
+           - "^teams/(?P<team>[^/]+)\\.ya?ml$"
        # JSON Schema to validate each file
        schema:
          type: object
@@ -66,9 +68,52 @@ datacur8 is a config-driven command-line tool that validates, exports, and tidie
            references:
              key: "$.id"
        output:
-         # Export validated team data to this directory
+         # Even though input is YAML (easier for humans to edit), we want to export as JSONL for downstream processing
          format: jsonl
          path: "out/teams.jsonl"
+
+     # Defines apps nested under each team
+     - name: app
+       input: yaml
+       match:
+         include:
+           # The apps files are nested under the owning team folder
+           - "^teams/(?P<team>[^/]+)/apps/(?P<app>[^/]+)\\.ya?ml$"
+       schema:
+         type: object
+         required: ["id", "name", "owner"]
+         properties:
+           id: { type: number, minimum: 1 }
+           name: { type: string, maxLength: 100 }
+           owner:
+             type: object
+             required: ["teamId"]
+             properties:
+               teamId: { type: number, minimum: 1 }
+             additionalProperties: false
+         additionalProperties: false
+       constraints:
+         - type: unique
+           key: "$.id"
+         # Ensure the app owner.teamId references an existing team ID in the other file
+         - type: foreign_key
+           key: "$.owner.teamId"
+           references:
+             type: team
+             key: "$.id"
+         # Ensure the parent team folder matches owner.teamId
+         - type: path_equals_attr
+           path_selector: "path.team"
+           references:
+             key: "$.owner.teamId"
+         - type: path_equals_attr
+           path_selector: "path.file"
+           references:
+             key: "$.id"
+       output:
+         format: jsonl
+         # Exported data for each type into a single file for downstream processing
+         path: "out/apps.jsonl"
    ```
 
 2. Run validation:
@@ -83,8 +128,14 @@ datacur8 is a config-driven command-line tool that validates, exports, and tidie
    datacur8 export
    ```
 
-4. Normalize formatting:
+4. Check formatting (CI-friendly; no files are rewritten):
 
    ```bash
    datacur8 tidy
+   ```
+
+   To apply formatting changes locally:
+
+   ```bash
+   datacur8 tidy --write
    ```

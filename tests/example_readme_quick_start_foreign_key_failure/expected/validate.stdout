@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "app",
+    "file": "teams/99/apps/201.yaml",
+    "message": "[foreign_key] foreign key \"99\" not found in team.$.id"
+  }
+]

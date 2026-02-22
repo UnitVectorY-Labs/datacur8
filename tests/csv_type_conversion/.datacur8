@@ -1,4 +1,4 @@
-version: "0.0.1"
+version: "0.0.0"
 types:
   - name: record
     input: csv
@@ -14,8 +14,6 @@ types:
         score: { type: number }
         active: { type: boolean }
       additionalProperties: false
-    csv:
-      delimiter: ","
     output:
       path: "out/records.json"
       format: json

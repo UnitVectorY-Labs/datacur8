@@ -9,7 +9,7 @@ import (
 
 func TestLoad_ConfigSchemaRejectsAdditionalTopLevelProperty(t *testing.T) {
 	cfgText := `
-version: "1.0.0"
+version: "0.0.0"
 types: []
 extra_top_level: true
 `
@@ -41,7 +41,7 @@ types: []
 
 func TestLoad_ConfigSchemaAcceptsValidMinimalConfig(t *testing.T) {
 	cfgText := `
-version: "1.0.0"
+version: "0.0.0"
 types: []
 `
 
@@ -50,8 +50,55 @@ types: []
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
-	if cfg.Version != "1.0.0" {
+	if cfg.Version != "0.0.0" {
 		t.Fatalf("unexpected version: %q", cfg.Version)
+	}
+}
+
+func TestLoad_ConfigSchemaRejectsCSVConfigProperty(t *testing.T) {
+	cfgText := `
+version: "0.0.0"
+types:
+  - name: records
+    input: csv
+    match:
+      include: ["^data/records\\.csv$"]
+    schema:
+      type: object
+    csv: {}
+`
+
+	path := writeTempConfig(t, cfgText)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected schema validation error")
+	}
+	if !strings.Contains(err.Error(), "configuration does not match schema") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLoad_ConfigSchemaRejectsPerTypeTidyConfig(t *testing.T) {
+	cfgText := `
+version: "0.0.0"
+types:
+  - name: records
+    input: json
+    match:
+      include: ["^data/records\\.json$"]
+    schema:
+      type: object
+    tidy:
+      sort_arrays_by: ["name"]
+`
+
+	path := writeTempConfig(t, cfgText)
+	_, err := Load(path)
+	if err == nil {
+		t.Fatal("expected schema validation error")
+	}
+	if !strings.Contains(err.Error(), "configuration does not match schema") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 

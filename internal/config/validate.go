@@ -97,14 +97,6 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 			errs = append(errs, fmt.Errorf("%s: schema.type must be \"object\"", prefix))
 		}
 
-		// csv
-		if t.Input == "csv" && t.CSV == nil {
-			errs = append(errs, fmt.Errorf("%s: csv config is required when input is csv", prefix))
-		}
-		if t.CSV != nil && len([]rune(t.CSV.Delimiter)) != 1 {
-			errs = append(errs, fmt.Errorf("%s: csv.delimiter must be exactly 1 character", prefix))
-		}
-
 		// output
 		if t.Output != nil {
 			switch t.Output.Format {

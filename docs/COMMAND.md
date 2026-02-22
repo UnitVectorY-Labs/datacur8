@@ -17,22 +17,27 @@ permalink: /command
 ## Usage
 
 ```
-datacur8 <command> [flags]
+Usage: datacur8 <command> [flags]
+
+Commands:
+  validate    Validate configuration and data files
+  export      Export validated data to configured outputs
+  tidy        Normalize file formatting for stable diffs
+  version     Print the version
+
+Run 'datacur8 <command> --help' for more information on a command.
 ```
 
-datacur8 must be run from the directory that contains the `.datacur8` configuration file. If the file is not found, the CLI exits with:
-
-```
-error: .datacur8 not found in current directory. Run from repo root.
-```
+{: .important }
+**datacur8** must be run from the directory that contains the `.datacur8` configuration file.
 
 ## Commands
 
 ### `validate`
 
-Validate the configuration and all data files.
+Validate the configuration and all data files. This provides the ability for a human user to validate the data set and also serves as a validation step for a pipeline before a pull request with changes to the data is merged.
 
-```
+```bash
 datacur8 validate [--config-only] [--format text|json|yaml]
 ```
 
@@ -41,7 +46,7 @@ datacur8 validate [--config-only] [--format text|json|yaml]
 | Flag | Description |
 |------|-------------|
 | `--config-only` | Only validate the `.datacur8` configuration file; skip data file scanning and validation |
-| `--format` | Override the output format for errors and warnings. Accepts `text`, `json`, or `yaml`. Defaults to `text` |
+| `--format` | Override the output format for errors and warnings. Accepts `text`, `json`, or `yaml`.<br>Defaults to `text` format |
 
 **Behavior:**
 
@@ -50,22 +55,23 @@ datacur8 validate [--config-only] [--format text|json|yaml]
 3. Discovers files matching type definitions
 4. Parses each file according to its input format
 5. Validates each item against its JSON Schema
-6. Evaluates all constraints
+6. Evaluates all constraints (uniqueness, references, etc...)
 7. Reports all errors found
 
-If no types are configured, validation is a no-op (config schema is still validated) and exits successfully.
+{: .highlight }
+If no types are configured in `.datacur8`, validation is a no-op (config schema is still validated) and exits successfully.
 
 ### `export`
 
-Export validated data to configured output files.
+Export validated data to configured output files. This is intended to be used in a pipeline after a change is merged to a deployment branch (ex: `main`) to compile the source data into a more consumable format for loading into downstream systems (ex: a database).
 
-```
+```bash
 datacur8 export
 ```
 
 Export runs the full validation pipeline first. If validation fails, export does not proceed and returns the validation exit code.
 
-For each type that defines an `output` configuration, datacur8 writes a compiled output file. If no types define output, export logs a message and exits successfully.
+For each type that defines an `output` configuration, **datacur8** writes a compiled output file. If no types define output, export logs a message and exits successfully.
 
 Output formats:
 
@@ -75,29 +81,32 @@ Output formats:
 | `yaml` | YAML object with one key (the type name) whose value is the exported array |
 | `jsonl` | One minified JSON object per line |
 
-For example, if the type is `foo`, the JSON/YAML output root key is `foo`; if the type is `bar`, the root key is `bar`.
-
-Items are ordered deterministically: by type order in config, then by file path, then by within-file order (for CSV rows).
+The ordering of items within the output file is intended to be deterministic based on file path to minimize differences between sequential runs.
 
 ### `tidy`
 
-Normalize file formatting for stable diffs.
+Normalize file formatting for stable diffs. This is intended to allow for the content of the human edited files to be normalized with minimal effort to allow for the diffs to be cleaner. It can be added as a required check in the pull request pipeline to ensure that all files are tidy before allowing a change to be merged.
 
-```
-datacur8 tidy [--dry-run]
+```bash
+datacur8 tidy [--write]
 ```
 
 **Flags:**
 
 | Flag | Description |
 |------|-------------|
-| `--dry-run` | Show which files would be changed without writing |
+| `--write` | Rewrite files in place. Without this flag, `tidy` runs in check mode and prints a colored diff |
 
 **Behavior:**
 
+- Default mode is **check-only**:
+  - files are not modified
+  - a colored git-like diff (with hunk line numbers and line-numbered added/removed lines) is written to the terminal for each file that would change
+  - exit code is non-zero when any file needs tidying (useful for CI / merge gates)
+- `--write` applies the tidy changes in place and exits non-zero only on parse/write errors
 - **JSON**: pretty-printed with sorted keys
 - **YAML**: stable formatting with sorted keys; comments are removed
-- **CSV**: sorted columns (alphabetical), optionally sorted rows via `tidy.sort_arrays_by`
+- **CSV**: sorted columns (alphabetical)
 
 Tidy does not change parsed data values. If the global `tidy.enabled` is set to `false`, tidy exits immediately.
 
@@ -120,6 +129,7 @@ Prints the version string and exits with code 0.
 | `2` | Data invalid — schema validation or constraint violations found |
 | `3` | Export failure — errors writing output files |
 | `4` | Tidy failure — errors parsing or writing files during tidy |
+| `5` | Tidy check failed — one or more files need formatting (check mode only) |
 
 ## Output Formats
 

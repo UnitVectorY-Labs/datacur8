@@ -21,20 +21,21 @@ import (
 
 // Exit codes
 const (
-	ExitOK             = 0
-	ExitConfigInvalid  = 1
-	ExitDataInvalid    = 2
-	ExitExportFailure  = 3
-	ExitTidyFailure    = 4
+	ExitOK            = 0
+	ExitConfigInvalid = 1
+	ExitDataInvalid   = 2
+	ExitExportFailure = 3
+	ExitTidyFailure   = 4
+	ExitTidyCheckDiff = 5
 )
 
 // reportEntry is a structured error/warning for JSON/YAML output.
 type reportEntry struct {
-	Level    string `json:"level" yaml:"level"`
-	Type     string `json:"type,omitempty" yaml:"type,omitempty"`
-	File     string `json:"file,omitempty" yaml:"file,omitempty"`
-	Row      *int   `json:"row,omitempty" yaml:"row,omitempty"`
-	Message  string `json:"message" yaml:"message"`
+	Level   string `json:"level" yaml:"level"`
+	Type    string `json:"type,omitempty" yaml:"type,omitempty"`
+	File    string `json:"file,omitempty" yaml:"file,omitempty"`
+	Row     *int   `json:"row,omitempty" yaml:"row,omitempty"`
+	Message string `json:"message" yaml:"message"`
 }
 
 // RunValidate runs the validate command.
@@ -149,10 +150,10 @@ func RunExport(version string) int {
 }
 
 // RunTidy runs the tidy command.
-// dryRun: if true, don't write changes.
+// writeChanges: if true, rewrite files; otherwise run in check mode and print diffs.
 // version: CLI version string.
 // Returns exit code.
-func RunTidy(dryRun bool, version string) int {
+func RunTidy(writeChanges bool, version string) int {
 	cfg, resolvedFormat, code := loadAndValidateConfig("", version)
 	if code != ExitOK {
 		return code
@@ -179,18 +180,8 @@ func RunTidy(dryRun bool, version string) int {
 	var changed []string
 
 	for _, f := range files {
-		var sortBy []string
-		if f.TypeDef.Tidy != nil {
-			sortBy = f.TypeDef.Tidy.SortArraysBy
-		}
-
-		csvDelimiter := ","
-		if f.TypeDef.CSV != nil && f.TypeDef.CSV.Delimiter != "" {
-			csvDelimiter = f.TypeDef.CSV.Delimiter
-		}
-
 		absPath := filepath.Join(rootDir, f.Path)
-		result, err := tidy.TidyFile(absPath, f.TypeDef.Input, sortBy, csvDelimiter, dryRun)
+		result, err := tidy.TidyFile(absPath, f.TypeDef.Input, !writeChanges)
 		if err != nil {
 			tidyErrors = append(tidyErrors, reportEntry{
 				Level:   "error",
@@ -203,6 +194,9 @@ func RunTidy(dryRun bool, version string) int {
 
 		if result.Changed {
 			changed = append(changed, f.Path)
+			if !writeChanges {
+				fmt.Fprint(os.Stderr, tidy.RenderColorUnifiedDiff(f.Path, result.Original, result.Tidied))
+			}
 		}
 	}
 
@@ -211,17 +205,20 @@ func RunTidy(dryRun bool, version string) int {
 		return ExitTidyFailure
 	}
 
-	if dryRun {
-		for _, p := range changed {
-			fmt.Fprintf(os.Stderr, "would tidy: %s\n", p)
-		}
-	} else {
+	if writeChanges {
 		for _, p := range changed {
 			fmt.Fprintf(os.Stderr, "tidied: %s\n", p)
 		}
+		return ExitOK
 	}
 
-	return ExitOK
+	if len(changed) == 0 {
+		return ExitOK
+	}
+
+	fmt.Fprintf(os.Stderr, "tidy check failed: %d file(s) need formatting\n", len(changed))
+	fmt.Fprintln(os.Stderr, "run `datacur8 tidy --write` to apply changes")
+	return ExitTidyCheckDiff
 }
 
 // loadAndValidateConfig loads the .datacur8 config, applies defaults, validates it,
@@ -371,13 +368,7 @@ func parseYAML(raw []byte, filePath string) ([]map[string]any, []reportEntry) {
 }
 
 func parseCSV(raw []byte, td *config.TypeDef, filePath string) ([]map[string]any, []reportEntry) {
-	delim := ','
-	if td.CSV != nil && td.CSV.Delimiter != "" {
-		delim = rune(td.CSV.Delimiter[0])
-	}
-
 	reader := csv.NewReader(bytes.NewReader(raw))
-	reader.Comma = delim
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, []reportEntry{{

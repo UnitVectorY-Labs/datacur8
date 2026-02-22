@@ -21,21 +21,11 @@ type TypeDef struct {
 	Schema      map[string]any  `yaml:"schema"`
 	Constraints []ConstraintDef `yaml:"constraints,omitempty"`
 	Output      *OutputDef      `yaml:"output,omitempty"`
-	CSV         *CSVDef         `yaml:"csv,omitempty"`
-	Tidy        *TypeTidyDef    `yaml:"tidy,omitempty"`
 }
 
 type MatchDef struct {
 	Include []string `yaml:"include"`
 	Exclude []string `yaml:"exclude,omitempty"`
-}
-
-type CSVDef struct {
-	Delimiter string `yaml:"delimiter,omitempty"`
-}
-
-type TypeTidyDef struct {
-	SortArraysBy []string `yaml:"sort_arrays_by,omitempty"`
 }
 
 type OutputDef struct {
@@ -90,10 +80,6 @@ func (c *Config) Defaults() {
 
 	for i := range c.Types {
 		t := &c.Types[i]
-
-		if t.CSV != nil && t.CSV.Delimiter == "" {
-			t.CSV.Delimiter = ","
-		}
 
 		for j := range t.Constraints {
 			con := &t.Constraints[j]

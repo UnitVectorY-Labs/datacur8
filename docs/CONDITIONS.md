@@ -29,8 +29,6 @@ Reference for validation conditions, error messages, and output formats returned
 | Configuration | `1` | Invalid regex pattern | Message pattern: types[N](name): match.include[M] invalid regex: ... or types[N](name): match.exclude[M] invalid regex: ... A `match.include` or `match.exclude` regex failed to compile. |
 | Configuration | `1` | Missing schema | Message pattern: types[N](name): schema is required. Every type must define a schema. |
 | Configuration | `1` | Invalid schema root type | Message pattern: types[N](name): schema.type must be \"object\". All datacur8 schemas must have root `type: object`. |
-| Configuration | `1` | Missing CSV configuration | Message pattern: types[N](name): csv config is required when input is csv. Types using `input: csv` must include a `csv` block. |
-| Configuration | `1` | Invalid CSV delimiter | Message pattern: types[N](name): csv.delimiter must be exactly 1 character. |
 | Configuration | `1` | Output path conflict | Message pattern: types[N](name): output.path \"path\" conflicts with type \"other\". Two types cannot write to the same output path. |
 | Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, or jsonl. |
 | Configuration | `1` | Invalid constraint selector | Message pattern: types[N](name).constraints[M]: key \"X\" is not a valid selector: ... Valid selectors include `$`, `$.field`, `$.a.b.c`, and `$.items[*].id`. |
@@ -54,6 +52,7 @@ Reference for validation conditions, error messages, and output formats returned
 | Export | `3` | Write failure | Message starts with: writing output file for type: ... datacur8 failed while writing the output file. |
 | Export | `3` | Marshaling failure | Message starts with: marshaling format output for type: ... datacur8 failed to encode export data in the requested output format. |
 | Tidy | `4` | Parse or rewrite failure | Message varies. `tidy` errors occur when a file cannot be parsed or rewritten during formatting normalization. |
+| Tidy | `5` | Check mode found changes | `tidy` (without `--write`) prints a colored diff and exits non-zero when one or more files need formatting. |
 | Output Format | N/A | Text (default) | Output shape: error: [type_name] file/path.json message. Written to `stderr`. |
 | Output Format | N/A | JSON (`--format json`) | Output shape: array of error objects with level, type, file, and message. CSV errors also include a `row` field. Written to `stdout`. |
 | Output Format | N/A | YAML (`--format yaml`) | Output shape: YAML list of error objects with level, type, file, and message. Written to `stdout`. |

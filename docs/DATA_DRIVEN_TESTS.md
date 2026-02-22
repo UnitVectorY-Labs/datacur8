@@ -86,9 +86,13 @@ expected/
 
 ### `expected/tidy/...` (required for tidy cases)
 
-- Contains the expected post-`tidy` file content.
+- Contains the expected post-`tidy --write` file content.
 - Paths are relative to the case root, mirrored under `expected/tidy/`.
 - Example: `expected/tidy/data/w1.yaml`
+- The integration suite also runs plain `tidy` (check mode) for the same fixture and asserts:
+  - files are not rewritten in check mode
+  - exit code is non-zero when the snapshot differs from the original input
+  - diff output is emitted
 
 ## Fixture Completeness Rules Enforced by Tests
 
@@ -109,7 +113,7 @@ This prevents silent skips and partial fixtures.
 
 - `expected/validate.exit` is `0`
 - If outputs are configured, `expected/export/...` snapshots are required
-- Add `expected/tidy/...` when the case is intended to exercise `tidy`
+- Add `expected/tidy/...` when the case is intended to exercise `tidy` (used for both check mode and `--write`)
 
 ### Failure cases
 
@@ -126,6 +130,7 @@ Current examples include:
 - `tests/example_readme_quick_start_success`
 - `tests/example_readme_quick_start_unique_id_failure`
 - `tests/example_readme_quick_start_path_file_mismatch_failure`
+- `tests/example_readme_quick_start_foreign_key_failure`
 - `tests/example_examples_team_service_registry_success`
 - `tests/example_examples_team_service_registry_foreign_key_failure`
 - `tests/example_examples_csv_product_catalog_success`
@@ -151,4 +156,3 @@ Before committing a new fixture:
 - Add `expected/tidy/...` when testing `tidy`
 - Do not keep generated outputs in the case root (store snapshots under `expected/export/...` instead)
 - Prefer one clearly named behavior per case
-

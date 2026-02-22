@@ -42,11 +42,6 @@ types:
     output:
       path: "output/users"
       format: jsonl
-    csv:
-      delimiter: ";"
-    tidy:
-      sort_arrays_by:
-        - name
   - name: roles
     input: yaml
     match:
@@ -98,12 +93,6 @@ func TestLoadValidConfig(t *testing.T) {
 	if users.Output == nil || users.Output.Format != "jsonl" || users.Output.Path != "output/users" {
 		t.Errorf("unexpected output: %v", users.Output)
 	}
-	if users.CSV == nil || users.CSV.Delimiter != ";" {
-		t.Errorf("expected csv delimiter ;, got %v", users.CSV)
-	}
-	if users.Tidy == nil || len(users.Tidy.SortArraysBy) != 1 || users.Tidy.SortArraysBy[0] != "name" {
-		t.Errorf("unexpected tidy: %v", users.Tidy)
-	}
 	if len(users.Constraints) != 2 {
 		t.Fatalf("expected 2 constraints, got %d", len(users.Constraints))
 	}
@@ -147,7 +136,6 @@ types:
       include: ["*.csv"]
     schema:
       type: object
-    csv: {}
     constraints:
       - type: unique
         key: "$.id"
@@ -155,9 +143,6 @@ types:
 
 	if cfg.StrictMode != "DISABLED" {
 		t.Errorf("expected default strict_mode DISABLED, got %s", cfg.StrictMode)
-	}
-	if cfg.Types[0].CSV.Delimiter != "," {
-		t.Errorf("expected default csv delimiter ',', got %s", cfg.Types[0].CSV.Delimiter)
 	}
 	if cfg.Types[0].Constraints[0].Scope != "type" {
 		t.Errorf("expected default constraint scope type, got %s", cfg.Types[0].Constraints[0].Scope)

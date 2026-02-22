@@ -1,4 +1,4 @@
-version: "0.0.1"
+version: "0.0.0"
 types:
   - name: category
     input: csv
@@ -12,8 +12,6 @@ types:
         id: { type: string }
         name: { type: string }
       additionalProperties: false
-    csv:
-      delimiter: ","
     constraints:
       - type: unique
         key: "$.id"
@@ -36,8 +34,6 @@ types:
         category_id: { type: string }
         active: { type: boolean }
       additionalProperties: false
-    csv:
-      delimiter: ","
     constraints:
       - type: unique
         key: "$.sku"

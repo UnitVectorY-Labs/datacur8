@@ -1,4 +1,4 @@
-version: "0.0.1"
+version: "0.0.0"
 types:
   - name: product
     input: csv
@@ -13,8 +13,6 @@ types:
         name: { type: string }
         price: { type: number }
       additionalProperties: false
-    csv:
-      delimiter: ","
     constraints:
       - type: unique
         key: "$.id"
