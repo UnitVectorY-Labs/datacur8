@@ -17,7 +17,7 @@ permalink: /configuration
 
 ## Overview
 
-datacur8 is configured by a single YAML file named `.datacur8` placed in the repository root directory. This file defines all types, schemas, constraints, and export settings.
+**datacur8** is configured by a single YAML file named `.datacur8` placed in the repository root directory. This file defines all types, schemas, constraints, and export settings.
 
 No additional config files are used — including in subdirectories. If a `.datacur8` file is found in a subdirectory, an error is returned.
 
@@ -25,14 +25,17 @@ No additional config files are used — including in subdirectories. If a `.data
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `version` | string | **yes** | — | Minimum datacur8 version required (semver: `major.minor.patch`) |
+| `version` | string | **yes** | — | Minimum **datacur8** version required (semver: `major.minor.patch`) |
 | `strict_mode` | string | no | `DISABLED` | One of `DISABLED`, `ENABLED`, or `FORCE` |
 | `types` | array | **yes** | — | List of type definitions |
 | `tidy` | object | no | `{ enabled: true }` | Global tidy configuration |
 
 ### version
 
-The minimum version of datacur8 required to process the config, expressed as `major.minor.patch`. The major version must match the CLI version, and the CLI version must be greater than or equal to the configured version. When running a development build, this field is ignored with a warning.
+The minimum version of **datacur8** required to process the config, expressed as `major.minor.patch`. The major version must match the CLI version, and the CLI version must be greater than or equal to the configured version. 
+
+{: .highlight }
+When running a development build, this field is ignored with a warning.
 
 ### strict_mode
 
@@ -50,6 +53,8 @@ Controls enforcement of `additionalProperties` on JSON schemas:
 |-------|------|---------|-------------|
 | `tidy.enabled` | boolean | `true` | Set to `false` to disable the tidy command |
 
+---
+
 ## Type Definition
 
 Each entry in the `types` array defines a category of data files.
@@ -62,12 +67,14 @@ Each entry in the `types` array defines a category of data files.
 | `schema` | object | **yes** | — | Inline JSON Schema; root `type` must be `object` |
 | `constraints` | array | no | `[]` | List of constraints |
 | `output` | object | no | — | Export configuration |
-| `csv` | object | conditional | — | CSV configuration; **required** when `input` is `csv` |
-| `tidy` | object | no | — | Per-type tidy configuration |
 
 ### name
 
 Type names must be unique across all types and match the pattern `^[a-zA-Z][a-zA-Z0-9_]*$`.
+
+
+{: .important }
+The type name is restricted to letters, digits, and underscores, and must start with a letter. This is to ensure that type names can be safely used as keys in export output and referenced in constraints without needing escaping.
 
 ### input
 
@@ -77,7 +84,7 @@ Each type handles exactly one file format:
 |-------|-------------|
 | `json` | JSON files parsed as objects |
 | `yaml` | YAML files parsed as objects |
-| `csv` | CSV files parsed as rows of objects |
+| `csv` | CSV files parsed as rows of objects (comma-delimited; no CSV config) |
 
 ## Match Definition
 
@@ -114,9 +121,17 @@ The following path values are always available (no capture groups required):
 | `path.ext` | Normalized extension without dot (`yaml`, `json`, or `csv`) |
 | `path.parent` | Name of the parent folder |
 
+{: .highlight }
+Avoid using overlapping capture group names of "file", "ext", or "parent" to prevent conflicts with the default path selectors.
+
+---
+
 ## Schema
 
-The `schema` field contains an inline JSON Schema applied to each parsed item. The root type must be `object`.
+The `schema` field contains an inline JSON Schema applied to each parsed item. 
+
+{: .highlight }
+The root type must be `object`. This is because **datacur8** is designed to export data as objects.
 
 ```yaml
 schema:
@@ -128,89 +143,27 @@ schema:
   additionalProperties: false
 ```
 
-datacur8 uses the `google/jsonschema-go` library for JSON Schema evaluation. The schema is validated to be a valid JSON Schema at config load time.
+**datacur8** uses the [google/jsonschema-go](https://github.com/google/jsonschema-go) library for JSON Schema evaluation. The schema is validated to be a valid JSON Schema at config load time.
 
-For CSV types, the schema must be a flat object (no nested objects or arrays) since CSV rows produce flat key-value objects.
+{: .highlight }
+For CSV types, the schema must be a flat object (no nested objects or arrays) since CSV rows produce flat key-value objects. The column names for the CSV file are used as the attribute keys to convert each row into a JSON object that is then validated against the schema.
+
+---
 
 ## Constraints
 
 Constraints are defined per type and enforce data integrity rules beyond JSON Schema. A constraint may reference other types but is always attached to a single owning type.
 
-### Selectors
+{: .important }
+See [Constraints](CONSTRAINTS.md) for detailed information on each constraint type, selectors, and examples.
 
-Constraints use JSONPath-like selectors to reference attributes:
+Supported constraint types:
 
-| Syntax | Description |
-|--------|-------------|
-| `$` | Root object |
-| `$.field` | Top-level field |
-| `$.a.b.c` | Nested field access |
-| `$.items[*].id` | Project values from array items |
+- `unique` — enforce uniqueness of a key across all items of a type, or within each item
+- `foreign_key` — ensure that a value in one type exists as a value in another
+- `path_equals_attr` — ensure that a value derived from the file path equals an attribute value
 
-If a selector yields multiple values:
-- `unique` enforces uniqueness within each item (with `scope: item`) or across all items (with `scope: type`)
-- `foreign_key` and `path_equals_attr` require a single scalar and will error if multiple values are found
-
-### unique
-
-Enforces uniqueness of a key across all items of a type, or within each item.
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `type` | string | **yes** | — | Must be `unique` |
-| `key` | string | **yes** | — | Selector for the value to check |
-| `id` | string | no | — | Optional identifier for the constraint |
-| `case_sensitive` | boolean | no | `true` | Whether string comparison is case-sensitive |
-| `scope` | string | no | `type` | `type` for cross-item uniqueness, `item` for within-item uniqueness |
-
-```yaml
-constraints:
-  - type: unique
-    key: "$.id"
-```
-
-### foreign_key
-
-Ensures that a value in one type exists as a value in another type.
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `type` | string | **yes** | — | Must be `foreign_key` |
-| `key` | string | **yes** | — | Selector on the owning item |
-| `id` | string | no | — | Optional identifier |
-| `references.type` | string | **yes** | — | Name of the referenced type |
-| `references.key` | string | **yes** | — | Selector on the referenced type items |
-
-```yaml
-constraints:
-  - type: foreign_key
-    key: "$.teamId"
-    references:
-      type: team
-      key: "$.id"
-```
-
-### path_equals_attr
-
-Ensures that a value derived from the file path equals an attribute value.
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `type` | string | **yes** | — | Must be `path_equals_attr` |
-| `path_selector` | string | **yes** | — | Path value: `path.file`, `path.parent`, `path.ext`, or `path.<capture>` |
-| `id` | string | no | — | Optional identifier |
-| `references.key` | string | **yes** | — | Selector on the item to compare against |
-| `case_sensitive` | boolean | no | `true` | Whether comparison is case-sensitive |
-
-```yaml
-constraints:
-  - type: path_equals_attr
-    path_selector: "path.file"
-    references:
-      key: "$.id"
-```
-
-Note: `references.type` cannot be set for `path_equals_attr` — it always applies within the owning type.
+---
 
 ## Output Configuration
 
@@ -229,32 +182,4 @@ output:
 
 Output paths must be unique across all types. Export creates directories as needed.
 
-## CSV Configuration
-
-Required when `input` is `csv`.
-
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `csv.delimiter` | string | no | `,` | Single-character delimiter |
-
-```yaml
-csv:
-  delimiter: ","
-```
-
-CSV validation:
-- The header row is required
-- All header names must exist in `schema.properties`
-- All `schema.required` fields must be present in the header
-- Values are converted to the schema-specified types (`boolean`, `number`, `integer`, `string`)
-
-## Per-Type Tidy Configuration
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `tidy.sort_arrays_by` | array of strings | no | Selectors used to sort top-level arrays for stable diffs |
-
-```yaml
-tidy:
-  sort_arrays_by: ["name"]
-```
+CSV files always use a comma (`,`) delimiter.

@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/UnitVectorY-Labs/datacur8/internal/cli"
 	"gopkg.in/yaml.v3"
 )
 
@@ -362,26 +364,115 @@ func TestTidy(t *testing.T) {
 		}
 
 		t.Run(name, func(t *testing.T) {
-			// Run tidy in a temp copy.
+			// First run default check mode and verify it does not rewrite files.
+			checkDir := t.TempDir()
+			copyDir(t, caseDir, checkDir)
+
+			originalTidyTargets := make(map[string][]byte)
+			expectedChange := false
+			err = filepath.WalkDir(expectedTidyDir, func(path string, d fs.DirEntry, err error) error {
+				if err != nil || d.IsDir() {
+					return err
+				}
+
+				relPath, _ := filepath.Rel(expectedTidyDir, path)
+				expectedContent, err := os.ReadFile(path)
+				if err != nil {
+					t.Errorf("reading expected tidy file %s: %v", relPath, err)
+					return nil
+				}
+
+				actualPath := filepath.Join(checkDir, relPath)
+				actualContent, err := os.ReadFile(actualPath)
+				if err != nil {
+					t.Errorf("expected tidy target %s not found in case copy", relPath)
+					return nil
+				}
+
+				originalTidyTargets[relPath] = append([]byte(nil), actualContent...)
+				if !bytes.Equal(actualContent, expectedContent) {
+					expectedChange = true
+				}
+				return nil
+			})
+			if err != nil {
+				t.Fatalf("walking expected tidy dir to seed check assertions: %v", err)
+			}
+
+			checkCmd := exec.Command(binaryPath, "tidy")
+			checkCmd.Dir = checkDir
+			var checkStdout, checkStderr strings.Builder
+			checkCmd.Stdout = &checkStdout
+			checkCmd.Stderr = &checkStderr
+
+			err = checkCmd.Run()
+			checkCode := 0
+			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					checkCode = exitErr.ExitCode()
+				} else {
+					t.Fatalf("running tidy (check mode): %v", err)
+				}
+			}
+
+			wantCheckCode := 0
+			if expectedChange {
+				wantCheckCode = cli.ExitTidyCheckDiff
+			}
+			if checkCode != wantCheckCode {
+				t.Fatalf(
+					"tidy check exit code = %d, want %d\nstdout:\n%s\nstderr:\n%s",
+					checkCode,
+					wantCheckCode,
+					checkStdout.String(),
+					checkStderr.String(),
+				)
+			}
+
+			for relPath, originalContent := range originalTidyTargets {
+				actualPath := filepath.Join(checkDir, relPath)
+				got, readErr := os.ReadFile(actualPath)
+				if readErr != nil {
+					t.Fatalf("reading tidy target after check mode %s: %v", relPath, readErr)
+				}
+				if !bytes.Equal(got, originalContent) {
+					t.Fatalf("tidy check mode rewrote %s unexpectedly", relPath)
+				}
+			}
+
+			if expectedChange {
+				stderrText := checkStderr.String()
+				if !strings.Contains(stderrText, "diff --git a/") {
+					t.Errorf("tidy check stderr missing diff header\nstderr:\n%s", stderrText)
+				}
+				if !strings.Contains(stderrText, "@@ -") {
+					t.Errorf("tidy check stderr missing hunk header with line numbers\nstderr:\n%s", stderrText)
+				}
+				if !strings.Contains(stderrText, "\x1b[") {
+					t.Errorf("tidy check stderr missing ANSI color codes\nstderr:\n%s", stderrText)
+				}
+				if !strings.Contains(stderrText, "run `datacur8 tidy --write` to apply changes") {
+					t.Errorf("tidy check stderr missing remediation hint\nstderr:\n%s", stderrText)
+				}
+			}
+
+			// Then run explicit write mode and compare to expected snapshots.
 			tmpDir := t.TempDir()
 			copyDir(t, caseDir, tmpDir)
 
-			cmd := exec.Command(binaryPath, "tidy")
+			cmd := exec.Command(binaryPath, "tidy", "--write")
 			cmd.Dir = tmpDir
 			var stdout, stderr strings.Builder
 			cmd.Stdout = &stdout
 			cmd.Stderr = &stderr
 
-			err := cmd.Run()
+			err = cmd.Run()
 			if err != nil {
 				if exitErr, ok := err.(*exec.ExitError); ok {
-					if exitErr.ExitCode() != 0 {
-						t.Fatalf("tidy failed with exit code %d\nstderr:\n%s",
-							exitErr.ExitCode(), stderr.String())
-					}
-				} else {
-					t.Fatalf("running tidy: %v", err)
+					t.Fatalf("tidy --write failed with exit code %d\nstderr:\n%s",
+						exitErr.ExitCode(), stderr.String())
 				}
+				t.Fatalf("running tidy --write: %v", err)
 			}
 
 			// Compare files under expected/tidy/ with the tidied files.

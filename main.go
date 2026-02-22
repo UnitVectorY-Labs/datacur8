@@ -54,9 +54,9 @@ func main() {
 
 	case "tidy":
 		tidyFlags := flag.NewFlagSet("tidy", flag.ExitOnError)
-		dryRun := tidyFlags.Bool("dry-run", false, "Show what would be changed without writing")
+		write := tidyFlags.Bool("write", false, "Rewrite files in place (default is check-only diff mode)")
 		tidyFlags.Parse(os.Args[2:])
-		os.Exit(cli.RunTidy(*dryRun, Version))
+		os.Exit(cli.RunTidy(*write, Version))
 
 	case "version":
 		fmt.Println(Version)

@@ -5,16 +5,7 @@ nav_order: 1
 permalink: /
 ---
 
-# datacur8
-{: .no_toc }
-
-## Table of contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
-
-## What is datacur8?
+# What is datacur8?
 
 **datacur8** is a config-driven command-line tool that validates, exports, and tidies structured data files (JSON, YAML, and CSV) intended to live in a Git repository. It brings database-style integrity checks to file-based datasets, without forcing you to build a database app.
 
@@ -25,9 +16,11 @@ permalink: /
 
 In the first case you are spending engineering time not addressing your core business problems. In the second path, there’s nothing enforcing schemas, uniqueness, foreign keys, naming conventions, or basic consistency, so mistakes slip through and surface later as production incidents.
 
-**This solution:** gives you the middle ground. You define data types, schemas, and constraints once in a single standard `.datacur8` file. Then **datacur8** deterministically validates the entire data set locally, emits clear errors, and runs the same checks in a deployment pipeline. That means non-technical or semi-technical contributors can safely edit plain-text files through workflows they already use (like GitHub pull requests), while **datacur8** provides the guardrails to ensure changes are validated and deployable before they ship.
+**This solution** gives you the middle ground. You define data types, schemas, and constraints once in a single standard `.datacur8` file. Then **datacur8** deterministically validates the entire data set locally, emits clear errors, and runs the same checks in a deployment pipeline. That means non-technical or semi-technical contributors can safely edit plain-text files through workflows they already use (like GitHub pull requests), while **datacur8** provides the guardrails to ensure changes are validated and deployable before they ship.
 
 ![datacur8 diagram](overview.excalidraw.svg)
+
+---
 
 ## Key Features
 
@@ -38,6 +31,8 @@ In the first case you are spending engineering time not addressing your core bus
 - **Strict mode** — optionally enforce `additionalProperties: false` on all object schemas
 - **CSV support** — schema-guided type conversion with header validation
 - **Git-friendly** — designed for CI pipelines; identical results locally and in automation
+
+---
 
 ## Quick Start
 
@@ -133,8 +128,14 @@ The following provides an example of a realistic starting place for how **datacu
    datacur8 export
    ```
 
-4. Normalize formatting:
+4. Check formatting (CI-friendly; no files are rewritten):
 
    ```bash
    datacur8 tidy
+   ```
+
+   To apply formatting changes locally:
+
+   ```bash
+   datacur8 tidy --write
    ```

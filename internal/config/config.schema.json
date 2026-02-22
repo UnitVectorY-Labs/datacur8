@@ -100,30 +100,8 @@
         },
         "output": {
           "$ref": "#/$defs/outputDef"
-        },
-        "csv": {
-          "$ref": "#/$defs/csvDef"
-        },
-        "tidy": {
-          "$ref": "#/$defs/typeTidyDef"
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "input": {
-                "const": "csv"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "csv"
-            ]
-          }
-        }
-      ]
+      }
     },
     "matchDef": {
       "type": "object",
@@ -145,30 +123,6 @@
             "type": "string"
           },
           "default": []
-        }
-      }
-    },
-    "csvDef": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "delimiter": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1,
-          "default": ","
-        }
-      }
-    },
-    "typeTidyDef": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "sort_arrays_by": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       }
     },

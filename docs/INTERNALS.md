@@ -57,7 +57,7 @@ Validation runs in a strict sequence of phases. Each phase must succeed before t
 **Package:** `config`
 
 1. Load and parse the `.datacur8` YAML file
-2. Apply default values (strict_mode, constraint scope, csv delimiter)
+2. Apply default values (strict_mode, constraint scope)
 3. Validate the config structurally and semantically:
    - Version format and compatibility
    - Valid enum values for strict_mode, input, output.format
@@ -65,7 +65,6 @@ Validation runs in a strict sequence of phases. Each phase must succeed before t
    - Unique output paths across types
    - Regex patterns compile successfully
    - Schemas are present with `type: object`
-   - CSV config is present when input is csv
    - Constraint selectors are valid
    - Foreign key references point to defined types
    - Path capture groups exist in all include patterns
@@ -143,7 +142,7 @@ CSV files are handled specially because they don't have native types — every c
 
 ### Parsing flow
 
-1. **Read** the entire CSV file with the configured delimiter
+1. **Read** the entire CSV file using a comma delimiter
 2. **Validate headers**: every column name must exist in `schema.properties`; every `schema.required` field must be present as a column
 3. **Convert** each cell value based on the schema property type:
    - `string`: used as-is

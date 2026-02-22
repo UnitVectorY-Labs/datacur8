@@ -21,7 +21,7 @@ func TestTidyJSON_SortsKeys(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.json", `{"z":1,"a":2,"m":3}`)
 
-	res, err := TidyFile(p, "json", nil, "", false)
+	res, err := TidyFile(p, "json", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -40,7 +40,7 @@ func TestTidyJSON_NestedKeys(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.json", `{"b":{"z":1,"a":2},"a":3}`)
 
-	res, err := TidyFile(p, "json", nil, "", false)
+	res, err := TidyFile(p, "json", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestTidyJSON_AlreadyTidy(t *testing.T) {
 	content := "{\n  \"a\": 1,\n  \"b\": 2\n}\n"
 	p := writeTempFile(t, dir, "test.json", content)
 
-	res, err := TidyFile(p, "json", nil, "", false)
+	res, err := TidyFile(p, "json", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -74,7 +74,7 @@ func TestTidyJSON_DryRun(t *testing.T) {
 	original := `{"z":1,"a":2}`
 	p := writeTempFile(t, dir, "test.json", original)
 
-	res, err := TidyFile(p, "json", nil, "", true)
+	res, err := TidyFile(p, "json", true)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -88,36 +88,17 @@ func TestTidyJSON_DryRun(t *testing.T) {
 	}
 }
 
-func TestTidyJSON_SortArraysBy(t *testing.T) {
-	dir := t.TempDir()
-	p := writeTempFile(t, dir, "test.json", `[{"name":"banana","id":2},{"name":"apple","id":1}]`)
-
-	res, err := TidyFile(p, "json", []string{"name"}, "", false)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !res.Changed {
-		t.Error("expected file to be changed")
-	}
-
-	got, _ := os.ReadFile(p)
-	expected := "[\n  {\n    \"id\": 1,\n    \"name\": \"apple\"\n  },\n  {\n    \"id\": 2,\n    \"name\": \"banana\"\n  }\n]\n"
-	if string(got) != expected {
-		t.Errorf("expected:\n%s\ngot:\n%s", expected, string(got))
-	}
-}
-
-func TestTidyJSON_Array_NoReorderWithoutConfig(t *testing.T) {
+func TestTidyJSON_ArrayOrderPreserved(t *testing.T) {
 	dir := t.TempDir()
 	input := "[\n  {\n    \"id\": 2,\n    \"name\": \"banana\"\n  },\n  {\n    \"id\": 1,\n    \"name\": \"apple\"\n  }\n]\n"
 	p := writeTempFile(t, dir, "test.json", input)
 
-	res, err := TidyFile(p, "json", nil, "", false)
+	res, err := TidyFile(p, "json", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if res.Changed {
-		t.Error("expected no change when arrays not configured for sorting")
+		t.Error("expected array order to be preserved")
 	}
 }
 
@@ -127,7 +108,7 @@ func TestTidyYAML_SortsKeys(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.yaml", "z: 1\na: 2\nm: 3\n")
 
-	res, err := TidyFile(p, "yaml", nil, "", false)
+	res, err := TidyFile(p, "yaml", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -146,7 +127,7 @@ func TestTidyYAML_StripsComments(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.yaml", "# This is a comment\na: 1\nb: 2 # inline comment\n")
 
-	res, err := TidyFile(p, "yaml", nil, "", false)
+	res, err := TidyFile(p, "yaml", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -165,7 +146,7 @@ func TestTidyYAML_NestedKeys(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.yaml", "b:\n  z: 1\n  a: 2\na: 3\n")
 
-	res, err := TidyFile(p, "yaml", nil, "", false)
+	res, err := TidyFile(p, "yaml", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -180,31 +161,12 @@ func TestTidyYAML_NestedKeys(t *testing.T) {
 	}
 }
 
-func TestTidyYAML_SortArraysBy(t *testing.T) {
-	dir := t.TempDir()
-	p := writeTempFile(t, dir, "test.yaml", "items:\n  - name: banana\n    id: 2\n  - name: apple\n    id: 1\n")
-
-	res, err := TidyFile(p, "yaml", []string{"name"}, "", false)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !res.Changed {
-		t.Error("expected file to be changed")
-	}
-
-	got, _ := os.ReadFile(p)
-	expected := "items:\n  - id: 1\n    name: apple\n  - id: 2\n    name: banana\n"
-	if string(got) != expected {
-		t.Errorf("expected:\n%s\ngot:\n%s", expected, string(got))
-	}
-}
-
 func TestTidyYAML_DryRun(t *testing.T) {
 	dir := t.TempDir()
 	original := "z: 1\na: 2\n"
 	p := writeTempFile(t, dir, "test.yaml", original)
 
-	res, err := TidyFile(p, "yaml", nil, "", true)
+	res, err := TidyFile(p, "yaml", true)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -224,7 +186,7 @@ func TestTidyCSV_SortsColumns(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.csv", "z,a,m\n1,2,3\n")
 
-	res, err := TidyFile(p, "csv", nil, ",", false)
+	res, err := TidyFile(p, "csv", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -239,50 +201,12 @@ func TestTidyCSV_SortsColumns(t *testing.T) {
 	}
 }
 
-func TestTidyCSV_SortRows(t *testing.T) {
-	dir := t.TempDir()
-	p := writeTempFile(t, dir, "test.csv", "name,id\nbanana,2\napple,1\n")
-
-	res, err := TidyFile(p, "csv", []string{"name"}, ",", false)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !res.Changed {
-		t.Error("expected file to be changed")
-	}
-
-	got, _ := os.ReadFile(p)
-	expected := "id,name\n1,apple\n2,banana\n"
-	if string(got) != expected {
-		t.Errorf("expected:\n%s\ngot:\n%s", expected, string(got))
-	}
-}
-
-func TestTidyCSV_CustomDelimiter(t *testing.T) {
-	dir := t.TempDir()
-	p := writeTempFile(t, dir, "test.csv", "z;a\n1;2\n")
-
-	res, err := TidyFile(p, "csv", nil, ";", false)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !res.Changed {
-		t.Error("expected file to be changed")
-	}
-
-	got, _ := os.ReadFile(p)
-	expected := "a;z\n2;1\n"
-	if string(got) != expected {
-		t.Errorf("expected:\n%s\ngot:\n%s", expected, string(got))
-	}
-}
-
 func TestTidyCSV_AlreadyTidy(t *testing.T) {
 	dir := t.TempDir()
 	content := "a,b\n1,2\n"
 	p := writeTempFile(t, dir, "test.csv", content)
 
-	res, err := TidyFile(p, "csv", nil, ",", false)
+	res, err := TidyFile(p, "csv", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -296,7 +220,7 @@ func TestTidyCSV_DryRun(t *testing.T) {
 	original := "z,a\n1,2\n"
 	p := writeTempFile(t, dir, "test.csv", original)
 
-	res, err := TidyFile(p, "csv", nil, ",", true)
+	res, err := TidyFile(p, "csv", true)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -359,7 +283,7 @@ func TestSortKeys_Scalar(t *testing.T) {
 // --- Unsupported format ---
 
 func TestTidyFile_UnsupportedFormat(t *testing.T) {
-	_, err := TidyFile("dummy.txt", "xml", nil, "", false)
+	_, err := TidyFile("dummy.txt", "xml", false)
 	if err == nil {
 		t.Error("expected error for unsupported format")
 	}
@@ -371,7 +295,7 @@ func TestTidyCSV_EmptyFile(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.csv", "")
 
-	res, err := TidyFile(p, "csv", nil, ",", false)
+	res, err := TidyFile(p, "csv", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -386,7 +310,7 @@ func TestTidyResult_Path(t *testing.T) {
 	dir := t.TempDir()
 	p := writeTempFile(t, dir, "test.json", `{"a":1}`)
 
-	res, err := TidyFile(p, "json", nil, "", false)
+	res, err := TidyFile(p, "json", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

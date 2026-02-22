@@ -161,8 +161,6 @@ types:
       properties:
         id: { type: string }
         name: { type: string }
-    csv:
-      delimiter: ","
     constraints:
       - type: unique
         key: "$.id"
@@ -184,8 +182,6 @@ types:
         price: { type: number }
         category_id: { type: string }
         active: { type: boolean }
-    csv:
-      delimiter: ","
     constraints:
       - type: unique
         key: "$.sku"

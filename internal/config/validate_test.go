@@ -150,30 +150,6 @@ func TestValidate_SchemaTypeMissing(t *testing.T) {
 	requireError(t, errs, `schema.type must be "object"`)
 }
 
-func TestValidate_CSVRequiresConfig(t *testing.T) {
-	cfg := &Config{
-		Version: "1.0.0",
-		Types: []TypeDef{
-			{Name: "t", Input: "csv", Match: MatchDef{Include: []string{"a"}}, Schema: map[string]any{"type": "object"}},
-		},
-	}
-	_, errs := Validate(cfg, "dev")
-	requireError(t, errs, "csv config is required")
-}
-
-func TestValidate_CSVDelimiterLength(t *testing.T) {
-	cfg := &Config{
-		Version: "1.0.0",
-		Types: []TypeDef{
-			{Name: "t", Input: "csv", Match: MatchDef{Include: []string{"a"}},
-				Schema: map[string]any{"type": "object"},
-				CSV:    &CSVDef{Delimiter: "ab"}},
-		},
-	}
-	_, errs := Validate(cfg, "dev")
-	requireError(t, errs, "delimiter must be exactly 1 character")
-}
-
 func TestValidate_OutputPathConflict(t *testing.T) {
 	cfg := &Config{
 		Version: "1.0.0",

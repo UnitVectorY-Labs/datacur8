@@ -16,5 +16,3 @@ types:
           maximum: 6
         active: { type: boolean }
       additionalProperties: false
-    csv:
-      delimiter: ","

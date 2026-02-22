@@ -13,5 +13,3 @@ types:
         name: { type: string }
         price: { type: number }
       additionalProperties: false
-    csv:
-      delimiter: ","
