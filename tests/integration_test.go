@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 var binaryPath string
@@ -40,6 +43,69 @@ func testsDir() string {
 		panic(err)
 	}
 	return wd
+}
+
+func TestDataDrivenFixturesComplete(t *testing.T) {
+	root := testsDir()
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		t.Fatalf("reading tests dir: %v", err)
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name()
+		caseDir := filepath.Join(root, name)
+
+		t.Run(name, func(t *testing.T) {
+			configPath := filepath.Join(caseDir, ".datacur8")
+			requireFile(t, configPath, "missing required test fixture file .datacur8")
+
+			expectedDir := filepath.Join(caseDir, "expected")
+			requireDir(t, expectedDir, "missing required expected/ directory")
+
+			validateExitPath := filepath.Join(expectedDir, "validate.exit")
+			requireFile(t, validateExitPath, "missing required expected/validate.exit")
+			expectedValidateCode := readExpectedExit(t, validateExitPath)
+
+			exportDir := filepath.Join(expectedDir, "export")
+			if dirExists(exportDir) {
+				requireDirHasFiles(t, exportDir, "expected/export must contain at least one snapshot file")
+			}
+
+			tidyDir := filepath.Join(expectedDir, "tidy")
+			if dirExists(tidyDir) {
+				requireDirHasFiles(t, tidyDir, "expected/tidy must contain at least one snapshot file")
+			}
+
+			// Invalid configs are allowed; only successful validate cases must prove output snapshots are complete.
+			if expectedValidateCode != 0 {
+				return
+			}
+
+			outputPaths, err := configuredOutputPaths(configPath)
+			if err != nil {
+				t.Fatalf("parsing %s to verify expected snapshots: %v", configPath, err)
+			}
+
+			if len(outputPaths) == 0 {
+				return
+			}
+
+			requireDir(t, exportDir, "validate succeeds and .datacur8 declares outputs, so expected/export is required")
+			for _, outPath := range outputPaths {
+				snapshotPath := filepath.Join(exportDir, filepath.FromSlash(outPath))
+				requireFile(
+					t,
+					snapshotPath,
+					fmt.Sprintf("missing expected export snapshot for configured output.path %q", outPath),
+				)
+			}
+		})
+	}
 }
 
 func TestValidate(t *testing.T) {
@@ -106,6 +172,98 @@ func TestValidate(t *testing.T) {
 			}
 		})
 	}
+}
+
+type fixtureConfig struct {
+	Types []fixtureType `yaml:"types"`
+}
+
+type fixtureType struct {
+	Output *fixtureOutput `yaml:"output"`
+}
+
+type fixtureOutput struct {
+	Path string `yaml:"path"`
+}
+
+func configuredOutputPaths(configPath string) ([]string, error) {
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var cfg fixtureConfig
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, err
+	}
+
+	var paths []string
+	for _, typ := range cfg.Types {
+		if typ.Output == nil {
+			continue
+		}
+		path := strings.TrimSpace(typ.Output.Path)
+		if path == "" {
+			continue
+		}
+		paths = append(paths, path)
+	}
+
+	return paths, nil
+}
+
+func requireFile(t *testing.T, path, msg string) {
+	t.Helper()
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			t.Fatal(msg)
+		}
+		t.Fatalf("%s: stat %s: %v", msg, path, err)
+	}
+	if info.IsDir() {
+		t.Fatalf("%s: %s is a directory", msg, path)
+	}
+}
+
+func requireDir(t *testing.T, path, msg string) {
+	t.Helper()
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			t.Fatal(msg)
+		}
+		t.Fatalf("%s: stat %s: %v", msg, path, err)
+	}
+	if !info.IsDir() {
+		t.Fatalf("%s: %s is not a directory", msg, path)
+	}
+}
+
+func requireDirHasFiles(t *testing.T, path, msg string) {
+	t.Helper()
+	hasFile := false
+	err := filepath.WalkDir(path, func(walkPath string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		hasFile = true
+		return fs.SkipAll
+	})
+	if err != nil {
+		t.Fatalf("walking %s: %v", path, err)
+	}
+	if !hasFile {
+		t.Fatal(msg)
+	}
+}
+
+func dirExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
 }
 
 func TestExport(t *testing.T) {

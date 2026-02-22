@@ -1,0 +1,51 @@
+version: "0.0.1"
+types:
+  - name: category
+    input: csv
+    match:
+      include:
+        - "^data/categories\\.csv$"
+    schema:
+      type: object
+      required: ["id", "name"]
+      properties:
+        id: { type: string }
+        name: { type: string }
+      additionalProperties: false
+    csv:
+      delimiter: ","
+    constraints:
+      - type: unique
+        key: "$.id"
+    output:
+      path: "out/categories.json"
+      format: json
+
+  - name: product
+    input: csv
+    match:
+      include:
+        - "^data/products\\.csv$"
+    schema:
+      type: object
+      required: ["sku", "name", "price", "category_id", "active"]
+      properties:
+        sku: { type: string }
+        name: { type: string }
+        price: { type: number }
+        category_id: { type: string }
+        active: { type: boolean }
+      additionalProperties: false
+    csv:
+      delimiter: ","
+    constraints:
+      - type: unique
+        key: "$.sku"
+      - type: foreign_key
+        key: "$.category_id"
+        references:
+          type: category
+          key: "$.id"
+    output:
+      path: "out/products.json"
+      format: json

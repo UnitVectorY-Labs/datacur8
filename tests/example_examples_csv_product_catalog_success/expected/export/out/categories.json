@@ -1,0 +1,12 @@
+{
+  "category": [
+    {
+      "id": "electronics",
+      "name": "Electronics"
+    },
+    {
+      "id": "clothing",
+      "name": "Clothing"
+    }
+  ]
+}

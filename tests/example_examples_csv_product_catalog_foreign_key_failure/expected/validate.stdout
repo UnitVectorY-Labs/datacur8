@@ -1,0 +1,9 @@
+[
+  {
+    "level": "error",
+    "type": "product",
+    "file": "data/products.csv",
+    "row": 1,
+    "message": "[foreign_key] foreign key \"missing-category\" not found in category.$.id"
+  }
+]

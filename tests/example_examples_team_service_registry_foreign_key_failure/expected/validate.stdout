@@ -1,0 +1,14 @@
+[
+  {
+    "level": "error",
+    "type": "service",
+    "file": "configs/teams/beta/services/svc2.yaml",
+    "message": "[path_equals_attr] path value \"beta\" does not match attribute value \"missing-team\""
+  },
+  {
+    "level": "error",
+    "type": "service",
+    "file": "configs/teams/beta/services/svc2.yaml",
+    "message": "[foreign_key] foreign key \"missing-team\" not found in team.$.id"
+  }
+]

@@ -311,8 +311,8 @@ Produces:
 ```json
 {
   "team": [
-    { "id": "alpha", "name": "Team Alpha" },
-    { "id": "beta", "name": "Team Beta" }
+    { "id": 1, "name": "Team Alpha" },
+    { "id": 2, "name": "Team Beta" }
   ]
 }
 ```
@@ -329,9 +329,9 @@ Produces:
 
 ```yaml
 team:
-  - id: alpha
+  - id: 1
     name: Team Alpha
-  - id: beta
+  - id: 2
     name: Team Beta
 ```
 
@@ -346,8 +346,8 @@ output:
 Produces:
 
 ```
-{"id":"api-gateway","name":"API Gateway","teamId":"alpha"}
-{"id":"billing","name":"Billing Service","teamId":"beta"}
+{"id":1,"name":"API Gateway"}
+{"id":2,"name":"Billing Service"}
 ```
 
 Each line is a minified JSON object. Items are ordered by file path for deterministic output.

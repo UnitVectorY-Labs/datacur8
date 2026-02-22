@@ -1,0 +1,13 @@
+version: "0.0.1"
+strict_mode: ENABLED
+types:
+  - name: item
+    input: json
+    match:
+      include:
+        - "^data/.*\\.json$"
+    schema:
+      type: object
+      required: ["id"]
+      properties:
+        id: { type: string }

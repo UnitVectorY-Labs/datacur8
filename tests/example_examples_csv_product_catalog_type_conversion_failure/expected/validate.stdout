@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "file": "data/products.csv",
+    "row": 0,
+    "message": "row 0, column \"price\": invalid number value: \"not-a-number\""
+  }
+]

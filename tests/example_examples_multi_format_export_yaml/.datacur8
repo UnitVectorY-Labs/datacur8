@@ -1,0 +1,20 @@
+version: "0.0.1"
+types:
+  - name: item
+    input: yaml
+    match:
+      include:
+        - "^data/.*\\.ya?ml$"
+    schema:
+      type: object
+      required: ["id", "name"]
+      properties:
+        id: { type: string }
+        name: { type: string }
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"
+    output:
+      path: "out/items.yaml"
+      format: yaml

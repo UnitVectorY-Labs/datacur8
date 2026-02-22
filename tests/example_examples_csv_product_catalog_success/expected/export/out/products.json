@@ -1,0 +1,25 @@
+{
+  "product": [
+    {
+      "active": true,
+      "category_id": "electronics",
+      "name": "Gaming Laptop",
+      "price": 1299.99,
+      "sku": "LAPTOP-001"
+    },
+    {
+      "active": true,
+      "category_id": "clothing",
+      "name": "Cotton T-Shirt",
+      "price": 19.99,
+      "sku": "TSHIRT-001"
+    },
+    {
+      "active": false,
+      "category_id": "electronics",
+      "name": "Smartphone",
+      "price": 799,
+      "sku": "PHONE-001"
+    }
+  ]
+}

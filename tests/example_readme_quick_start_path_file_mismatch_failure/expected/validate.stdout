@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "team",
+    "file": "teams/2.yaml",
+    "message": "[path_equals_attr] path value \"2\" does not match attribute value 'c'"
+  }
+]
