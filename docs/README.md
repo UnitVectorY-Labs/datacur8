@@ -41,7 +41,7 @@ The following provides an example of a realistic starting place for how **datacu
 1. Create a `.datacur8` file in your repository root:
 
    ```yaml
-   version: "0.0.1" # Minimum version of datacur8 required for this config
+   version: "0.0.0" # Minimum version of datacur8 required for this config
    types:
      # Defines the type of 'team' to manage data
      - name: team

@@ -38,7 +38,7 @@ configs/
 ### Configuration
 
 ```yaml
-version: "1.0.0"
+version: "0.0.0"
 strict_mode: DISABLED
 
 types:
@@ -147,7 +147,7 @@ data/
 ### Configuration
 
 ```yaml
-version: "1.0.0"
+version: "0.0.0"
 
 types:
   - name: category
@@ -231,7 +231,7 @@ Strict mode prevents undeclared properties from appearing in data files.
 With `strict_mode: ENABLED`, any object schema that doesn't explicitly set `additionalProperties` is treated as `additionalProperties: false`.
 
 ```yaml
-version: "1.0.0"
+version: "0.0.0"
 strict_mode: ENABLED
 
 types:
@@ -269,7 +269,7 @@ With `ENABLED`, the following file would **fail** because `tags.region` is not d
 With `strict_mode: FORCE`, even schemas that explicitly allow additional properties have it overridden:
 
 ```yaml
-version: "1.0.0"
+version: "0.0.0"
 strict_mode: FORCE
 
 types:

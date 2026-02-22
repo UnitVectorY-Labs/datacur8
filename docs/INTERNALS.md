@@ -2,6 +2,7 @@
 layout: default
 title: Internals
 nav_order: 7
+has_toc: false
 has_children: true
 permalink: /internals
 ---

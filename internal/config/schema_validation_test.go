@@ -9,7 +9,7 @@ import (
 
 func TestLoad_ConfigSchemaRejectsAdditionalTopLevelProperty(t *testing.T) {
 	cfgText := `
-version: "1.0.0"
+version: "0.0.0"
 types: []
 extra_top_level: true
 `
@@ -41,7 +41,7 @@ types: []
 
 func TestLoad_ConfigSchemaAcceptsValidMinimalConfig(t *testing.T) {
 	cfgText := `
-version: "1.0.0"
+version: "0.0.0"
 types: []
 `
 
@@ -50,14 +50,14 @@ types: []
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
-	if cfg.Version != "1.0.0" {
+	if cfg.Version != "0.0.0" {
 		t.Fatalf("unexpected version: %q", cfg.Version)
 	}
 }
 
 func TestLoad_ConfigSchemaRejectsCSVConfigProperty(t *testing.T) {
 	cfgText := `
-version: "1.0.0"
+version: "0.0.0"
 types:
   - name: records
     input: csv
@@ -80,7 +80,7 @@ types:
 
 func TestLoad_ConfigSchemaRejectsPerTypeTidyConfig(t *testing.T) {
 	cfgText := `
-version: "1.0.0"
+version: "0.0.0"
 types:
   - name: records
     input: json
