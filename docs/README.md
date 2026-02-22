@@ -22,6 +22,8 @@ datacur8 is a config-driven command-line tool that validates, exports, and tidie
 
 **The solution:** datacur8 reads a single `.datacur8` configuration file that declares your data types, schemas, and constraints. It validates every file deterministically, produces clear error messages, and runs identically locally and in CI.
 
+![datacur8 diagram](overview.excalidraw.svg)
+
 ## Key Features
 
 - **JSON Schema validation** — validate every data file against an inline JSON Schema with full-featured support via `google/jsonschema-go`
