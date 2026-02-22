@@ -6,7 +6,7 @@
        match:
          include:
            # Specify where the files are located
-           - "^teams/.*\\.ya?ml$"
+           - "^teams/(?P<team>[^/]+)\\.ya?ml$"
        # JSON Schema to validate each file
        schema:
          type: object
@@ -28,3 +28,46 @@
          # Export validated team data to this directory
          format: jsonl
          path: "out/teams.jsonl"
+
+     # Defines apps nested under each team
+     - name: app
+       input: yaml
+       match:
+         include:
+           - "^teams/(?P<team>[^/]+)/apps/(?P<app>[^/]+)\\.ya?ml$"
+       schema:
+         type: object
+         required: ["id", "name", "owner"]
+         properties:
+           id: { type: number, minimum: 1 }
+           name: { type: string, maxLength: 100 }
+           owner:
+             type: object
+             required: ["teamId"]
+             properties:
+               teamId: { type: number, minimum: 1 }
+             additionalProperties: false
+         additionalProperties: false
+       constraints:
+         # Ensure the app ID is unique across all app files
+         - type: unique
+           key: "$.id"
+         # Ensure the app owner.teamId references an existing team ID
+         - type: foreign_key
+           key: "$.owner.teamId"
+           references:
+             type: team
+             key: "$.id"
+         # Ensure the parent team folder matches owner.teamId
+         - type: path_equals_attr
+           path_selector: "path.team"
+           references:
+             key: "$.owner.teamId"
+         # Ensure the app file name (without extension) matches the app ID
+         - type: path_equals_attr
+           path_selector: "path.file"
+           references:
+             key: "$.id"
+       output:
+         format: jsonl
+         path: "out/apps.jsonl"

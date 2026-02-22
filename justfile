@@ -9,6 +9,7 @@ build:
 
 # Run the Go tests
 test:
+  go clean -testcache
   go test ./...
 
 # Serve documentation locally for testing (bootstraps local Jekyll setup)

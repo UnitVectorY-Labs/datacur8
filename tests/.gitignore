@@ -1,0 +1,4 @@
+# Allow test expected export output
+!**/expected/export/
+!**/expected/export/out/
+!**/expected/export/out/**

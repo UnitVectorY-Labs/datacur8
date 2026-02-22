@@ -126,6 +126,7 @@ Current examples include:
 - `tests/example_readme_quick_start_success`
 - `tests/example_readme_quick_start_unique_id_failure`
 - `tests/example_readme_quick_start_path_file_mismatch_failure`
+- `tests/example_readme_quick_start_foreign_key_failure`
 - `tests/example_examples_team_service_registry_success`
 - `tests/example_examples_team_service_registry_foreign_key_failure`
 - `tests/example_examples_csv_product_catalog_success`
@@ -151,4 +152,3 @@ Before committing a new fixture:
 - Add `expected/tidy/...` when testing `tidy`
 - Do not keep generated outputs in the case root (store snapshots under `expected/export/...` instead)
 - Prefer one clearly named behavior per case
-
