@@ -66,8 +66,14 @@ If no types are configured in `.datacur8`, validation is a no-op (config schema 
 Export validated data to configured output files. This is intended to be used in a pipeline after a change is merged to a deployment branch (ex: `main`) to compile the source data into a more consumable format for loading into downstream systems (ex: a database).
 
 ```bash
-datacur8 export
+datacur8 export [--format text|json|yaml]
 ```
+
+**Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--format` | Override the output format for errors. Accepts `text`, `json`, or `yaml`.<br>Defaults to `text` format |
 
 Export runs the full validation pipeline first. If validation fails, export does not proceed and returns the validation exit code.
 
@@ -88,7 +94,7 @@ The ordering of items within the output file is intended to be deterministic bas
 Normalize file formatting for stable diffs. This is intended to allow for the content of the human edited files to be normalized with minimal effort to allow for the diffs to be cleaner. It can be added as a required check in the pull request pipeline to ensure that all files are tidy before allowing a change to be merged.
 
 ```bash
-datacur8 tidy [--write]
+datacur8 tidy [--write] [--format text|json|yaml]
 ```
 
 **Flags:**
@@ -96,6 +102,7 @@ datacur8 tidy [--write]
 | Flag | Description |
 |------|-------------|
 | `--write` | Rewrite files in place. Without this flag, `tidy` runs in check mode and prints a colored diff |
+| `--format` | Override the output format for errors. Accepts `text`, `json`, or `yaml`.<br>Defaults to `text` format |
 
 **Behavior:**
 
