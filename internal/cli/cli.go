@@ -231,6 +231,14 @@ func loadAndValidateConfig(formatOverride string, version string) (*config.Confi
 		resolvedFormat = formatOverride
 	}
 
+	switch resolvedFormat {
+	case "text", "json", "yaml":
+		// valid
+	default:
+		fmt.Fprintf(os.Stderr, "error: --format %q is not valid; must be text, json, or yaml\n", resolvedFormat)
+		return nil, "text", ExitConfigInvalid
+	}
+
 	rootDir, err := os.Getwd()
 	if err != nil {
 		reportErrors(resolvedFormat, []reportEntry{{Level: "error", Type: "config", Message: err.Error()}})
