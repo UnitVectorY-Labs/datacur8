@@ -140,15 +140,15 @@ Prints the version string and exits with code 0.
 
 ## Output Formats
 
-Error and warning output can be formatted as plain text (default), JSON, or YAML.
+Error and warning output can be formatted as plain text (default), JSON, or YAML using the `--format` flag on `validate`, `export`, and `tidy`.
 
-**Text format** (default):
+**Text format** (default) — written to `stderr`:
 
 ```
 error: [type_name] file/path.yaml message describing the problem
 ```
 
-**JSON format** (`--format json`):
+**JSON format** (`--format json`) — written to `stdout`:
 
 ```json
 [
@@ -161,7 +161,7 @@ error: [type_name] file/path.yaml message describing the problem
 ]
 ```
 
-**YAML format** (`--format yaml`):
+**YAML format** (`--format yaml`) — written to `stdout`:
 
 ```yaml
 - level: error

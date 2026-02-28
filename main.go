@@ -55,8 +55,13 @@ Flags:`)
 			validateFlags.PrintDefaults()
 		}
 		configOnly := validateFlags.Bool("config-only", false, "Only validate configuration, not data files")
-		format := validateFlags.String("format", "", "Output format (text, json, yaml)")
+		format := validateFlags.String("format", "", "Output format: text, json, or yaml (default: text)")
 		validateFlags.Parse(os.Args[2:])
+		if validateFlags.NArg() > 0 {
+			fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", validateFlags.Arg(0))
+			validateFlags.Usage()
+			os.Exit(1)
+		}
 		os.Exit(cli.RunValidate(*configOnly, *format, Version))
 
 	case "export":
@@ -70,8 +75,13 @@ if validation fails, export does not proceed.
 Flags:`)
 			exportFlags.PrintDefaults()
 		}
-		format := exportFlags.String("format", "", "Output format for errors (text, json, yaml)")
+		format := exportFlags.String("format", "", "Output format: text, json, or yaml (default: text)")
 		exportFlags.Parse(os.Args[2:])
+		if exportFlags.NArg() > 0 {
+			fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", exportFlags.Arg(0))
+			exportFlags.Usage()
+			os.Exit(1)
+		}
 		os.Exit(cli.RunExport(*format, Version))
 
 	case "tidy":
@@ -86,8 +96,13 @@ Flags:`)
 			tidyFlags.PrintDefaults()
 		}
 		write := tidyFlags.Bool("write", false, "Rewrite files in place (default is check-only diff mode)")
-		format := tidyFlags.String("format", "", "Output format for errors (text, json, yaml)")
+		format := tidyFlags.String("format", "", "Output format: text, json, or yaml (default: text)")
 		tidyFlags.Parse(os.Args[2:])
+		if tidyFlags.NArg() > 0 {
+			fmt.Fprintf(os.Stderr, "unexpected argument: %s\n", tidyFlags.Arg(0))
+			tidyFlags.Usage()
+			os.Exit(1)
+		}
 		os.Exit(cli.RunTidy(*write, *format, Version))
 
 	case "version":
