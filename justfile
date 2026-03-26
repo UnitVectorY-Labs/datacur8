@@ -1,13 +1,12 @@
 
-# List all available commands
+# Commands for datacur8
 default:
   @just --list
-
-# Build the Go application
+# Build datacur8 with Go
 build:
   go build ./...
 
-# Run the Go tests
+# Run tests for datacur8 with Go
 test:
   go clean -testcache
   go test ./...

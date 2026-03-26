@@ -1,0 +1,11 @@
+name: datacur8
+default_branch: main
+config:
+  description: "A config-driven CLI that validates and enforces cross-file integrity for structured JSON, YAML, and CSV datasets in a repo, then can export compiled outputs and deterministically tidy files for stable diffs."
+  license: MIT
+  language: go
+  release: release-go
+  justfile: true
+  docs:
+    enabled: true
+    domain: datacur8.unitvectorylabs.com
