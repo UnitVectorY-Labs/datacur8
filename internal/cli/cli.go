@@ -82,10 +82,11 @@ func RunValidate(configOnly bool, format string, version string) int {
 }
 
 // RunExport runs the export command.
+// format: output format (text, json, yaml) - from --format flag.
 // version: CLI version string.
 // Returns exit code.
-func RunExport(version string) int {
-	cfg, resolvedFormat, code := loadAndValidateConfig("", version)
+func RunExport(format string, version string) int {
+	cfg, resolvedFormat, code := loadAndValidateConfig(format, version)
 	if code != ExitOK {
 		return code
 	}
@@ -151,10 +152,11 @@ func RunExport(version string) int {
 
 // RunTidy runs the tidy command.
 // writeChanges: if true, rewrite files; otherwise run in check mode and print diffs.
+// format: output format (text, json, yaml) - from --format flag.
 // version: CLI version string.
 // Returns exit code.
-func RunTidy(writeChanges bool, version string) int {
-	cfg, resolvedFormat, code := loadAndValidateConfig("", version)
+func RunTidy(writeChanges bool, format string, version string) int {
+	cfg, resolvedFormat, code := loadAndValidateConfig(format, version)
 	if code != ExitOK {
 		return code
 	}
@@ -227,6 +229,14 @@ func loadAndValidateConfig(formatOverride string, version string) (*config.Confi
 	resolvedFormat := "text"
 	if formatOverride != "" {
 		resolvedFormat = formatOverride
+	}
+
+	switch resolvedFormat {
+	case "text", "json", "yaml":
+		// valid
+	default:
+		fmt.Fprintf(os.Stderr, "error: --format %q is not valid; must be text, json, or yaml\n", resolvedFormat)
+		return nil, "text", ExitConfigInvalid
 	}
 
 	rootDir, err := os.Getwd()
