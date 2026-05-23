@@ -7,8 +7,8 @@ import (
 )
 
 func TestVersionDefault(t *testing.T) {
-	if Version == "" {
-		t.Fatal("expected non-empty default version")
+	if Version != "dev" {
+		t.Fatalf("expected default version %q, got %q", "dev", Version)
 	}
 }
 
