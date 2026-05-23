@@ -4,12 +4,25 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
+	"runtime"
 	"runtime/debug"
+	"strings"
 
 	"github.com/UnitVectorY-Labs/datacur8/internal/cli"
 )
 
 var Version = "dev" // This will be set by the build systems to the release version
+var versionPattern = regexp.MustCompile(`^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$`)
+
+func buildVersionOutput(projectName, version string) string {
+	normalized := version
+	if versionPattern.MatchString(normalized) && !strings.HasPrefix(normalized, "v") {
+		normalized = "v" + normalized
+	}
+
+	return fmt.Sprintf("%s version %s (%s, %s/%s)", projectName, normalized, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+}
 
 func usage() {
 	fmt.Fprintln(os.Stderr, `Usage: datacur8 <command> [flags]
@@ -106,7 +119,7 @@ Flags:`)
 		os.Exit(cli.RunTidy(*write, *format, Version))
 
 	case "version":
-		fmt.Println(Version)
+		fmt.Println(buildVersionOutput("datacur8", Version))
 		os.Exit(0)
 
 	default:

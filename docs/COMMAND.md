@@ -127,6 +127,12 @@ datacur8 version
 
 Prints the version string and exits with code 0.
 
+Output format:
+
+```text
+datacur8 version vX.Y.Z (goX.Y, os/arch)
+```
+
 ## Exit Codes
 
 | Code | Meaning |

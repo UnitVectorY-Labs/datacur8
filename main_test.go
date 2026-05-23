@@ -1,0 +1,49 @@
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"testing"
+)
+
+func TestVersionDefault(t *testing.T) {
+	if Version != "dev" {
+		t.Fatalf("expected default version %q, got %q", "dev", Version)
+	}
+}
+
+func TestBuildVersionOutputAddsVPrefixAndMetadata(t *testing.T) {
+	got := buildVersionOutput("datacur8", "1.2.3")
+	want := fmt.Sprintf("datacur8 version v1.2.3 (%s, %s/%s)", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+
+	if got != want {
+		t.Fatalf("unexpected version output: got %q, want %q", got, want)
+	}
+}
+
+func TestBuildVersionOutputPreservesExistingVPrefix(t *testing.T) {
+	got := buildVersionOutput("datacur8", "v1.2.3")
+	want := fmt.Sprintf("datacur8 version v1.2.3 (%s, %s/%s)", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+
+	if got != want {
+		t.Fatalf("unexpected version output: got %q, want %q", got, want)
+	}
+}
+
+func TestBuildVersionOutputLeavesDevVersionUntouched(t *testing.T) {
+	got := buildVersionOutput("datacur8", "dev")
+	want := fmt.Sprintf("datacur8 version dev (%s, %s/%s)", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+
+	if got != want {
+		t.Fatalf("unexpected version output: got %q, want %q", got, want)
+	}
+}
+
+func TestBuildVersionOutputAddsVPrefixForPrerelease(t *testing.T) {
+	got := buildVersionOutput("datacur8", "1.2.3-beta.1")
+	want := fmt.Sprintf("datacur8 version v1.2.3-beta.1 (%s, %s/%s)", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+
+	if got != want {
+		t.Fatalf("unexpected version output: got %q, want %q", got, want)
+	}
+}

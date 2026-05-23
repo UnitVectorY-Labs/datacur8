@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -45,6 +46,28 @@ func testsDir() string {
 		panic(err)
 	}
 	return wd
+}
+
+func TestVersionCommand(t *testing.T) {
+	cmd := exec.Command(binaryPath, "version")
+	var stdout, stderr strings.Builder
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("running version command: %v\nstdout:\n%s\nstderr:\n%s", err, stdout.String(), stderr.String())
+	}
+
+	got := stdout.String()
+	wantPrefix := "datacur8 version "
+	wantSuffix := fmt.Sprintf(" (%s, %s/%s)\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	if !strings.HasPrefix(got, wantPrefix) || !strings.HasSuffix(got, wantSuffix) {
+		t.Fatalf("version output = %q, want prefix %q and suffix %q", got, wantPrefix, wantSuffix)
+	}
+
+	if stderr.String() != "" {
+		t.Fatalf("expected empty stderr, got %q", stderr.String())
+	}
 }
 
 func TestDataDrivenFixturesComplete(t *testing.T) {
