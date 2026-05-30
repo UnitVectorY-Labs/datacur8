@@ -6,7 +6,8 @@ import (
 	"github.com/UnitVectorY-Labs/datacur8/internal/config"
 )
 
-func boolPtr(b bool) *bool { return &b }
+//go:fix inline
+func boolPtr(b bool) *bool { return new(b) }
 
 // --- unique constraint tests ---
 
@@ -65,7 +66,7 @@ func TestUnique_ScalarTypeScope_CaseInsensitive(t *testing.T) {
 		Name: "user",
 		Constraints: []config.ConstraintDef{{
 			ID: "unique-name", Type: "unique", Key: "$.name", Scope: "type",
-			CaseSensitive: boolPtr(false),
+			CaseSensitive: new(false),
 		}},
 	}}
 	errs := Evaluate(items, defs)
@@ -367,7 +368,7 @@ func TestPathEqualsAttr_CaseInsensitive(t *testing.T) {
 		Constraints: []config.ConstraintDef{{
 			ID: "path-name", Type: "path_equals_attr", PathSelector: "path.file",
 			References:    &config.ReferenceDef{Key: "$.name"},
-			CaseSensitive: boolPtr(false),
+			CaseSensitive: new(false),
 		}},
 	}}
 	errs := Evaluate(items, defs)

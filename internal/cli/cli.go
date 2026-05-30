@@ -316,7 +316,7 @@ func parseAndValidateFiles(files []discovery.DiscoveredFile, cfg *config.Config)
 					Message: se.Error(),
 				}
 				if rowIndex >= 0 {
-					entry.Row = intPtr(rowIndex)
+					entry.Row = new(rowIndex)
 				}
 				schemaEntries = append(schemaEntries, entry)
 			}
@@ -454,7 +454,7 @@ func parseCSV(raw []byte, td *config.TypeDef, filePath string) ([]map[string]any
 				parseErrors = append(parseErrors, reportEntry{
 					Level:   "error",
 					File:    filePath,
-					Row:     intPtr(i),
+					Row:     new(i),
 					Message: fmt.Sprintf("row %d, column %q: %v", i, h, err),
 				})
 				rowHasError = true
@@ -603,10 +603,11 @@ func constraintErrorsToEntries(errs []constraints.Error) []reportEntry {
 			Message: fmt.Sprintf("[%s] %s", e.ConstraintType, e.Message),
 		}
 		if e.RowIndex >= 0 {
-			entries[i].Row = intPtr(e.RowIndex)
+			entries[i].Row = new(e.RowIndex)
 		}
 	}
 	return entries
 }
 
-func intPtr(i int) *int { return &i }
+//go:fix inline
+func intPtr(i int) *int { return new(i) }

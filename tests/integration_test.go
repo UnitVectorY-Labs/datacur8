@@ -158,7 +158,7 @@ func TestValidate(t *testing.T) {
 			args := []string{"validate"}
 			argsFile := filepath.Join(caseDir, "expected", "validate.args")
 			if data, err := os.ReadFile(argsFile); err == nil {
-				for _, a := range strings.Fields(strings.TrimSpace(string(data))) {
+				for a := range strings.FieldsSeq(strings.TrimSpace(string(data))) {
 					args = append(args, a)
 				}
 			}
@@ -572,7 +572,7 @@ func compareLines(t *testing.T, label, actual, expected string) {
 
 func nonEmptyLines(s string) []string {
 	var lines []string
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		if strings.TrimSpace(line) != "" {
 			lines = append(lines, line)
 		}

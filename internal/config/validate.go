@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -10,8 +11,8 @@ import (
 )
 
 var (
-	semverRe      = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
-	typeNameRe    = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`)
+	semverRe       = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)$`)
+	typeNameRe     = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`)
 	pathSelectorRe = regexp.MustCompile(`^path\.(file|parent|ext|[a-zA-Z_][a-zA-Z0-9_]*)$`)
 )
 
@@ -226,10 +227,5 @@ func extractCaptureName(ps string) string {
 // hasNamedGroup returns true if the compiled regex defines a named capture group
 // with the given name.
 func hasNamedGroup(re *regexp.Regexp, name string) bool {
-	for _, n := range re.SubexpNames() {
-		if n == name {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(re.SubexpNames(), name)
 }
