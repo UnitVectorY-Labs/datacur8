@@ -47,7 +47,8 @@
               "json",
               "yaml",
               "csv",
-              "hcl"
+              "hcl",
+              "toml"
             ]
           },
           "match": {
@@ -220,6 +221,7 @@
                   "yaml",
                   "jsonl",
                   "hcl",
+                  "toml",
                   "csv"
                 ]
               },

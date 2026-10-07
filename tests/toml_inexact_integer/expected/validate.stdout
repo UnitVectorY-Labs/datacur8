@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/1.toml",
+    "message": "parsing TOML: data/1.toml: $[\"a\"][\"nested\"][0]: integer cannot be represented exactly as float64"
+  }
+]

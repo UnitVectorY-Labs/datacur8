@@ -114,7 +114,7 @@ func TestValidate_InputInvalid(t *testing.T) {
 		},
 	}
 	_, errs := Validate(cfg, "dev")
-	requireError(t, errs, "must be json, yaml, csv, or hcl")
+	requireError(t, errs, "must be json, yaml, csv, hcl, or toml")
 }
 
 func TestValidate_EmptyInclude(t *testing.T) {
@@ -397,7 +397,7 @@ func TestValidate_InvalidExcludeRegex(t *testing.T) {
 		Version: "1.0.0",
 		Types: []TypeDef{
 			{Name: "t", Input: "json",
-				Match:  MatchDef{Include: []string{"a"}, Exclude: []string{"[bad"}},
+				Match: MatchDef{Include: []string{"a"}, Exclude: []string{"[bad"}},
 				Schema: map[string]any{"type": "object"}},
 		},
 	}

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"gopkg.in/yaml.v3"
@@ -203,5 +205,30 @@ func TestLoadFileNotFound(t *testing.T) {
 	_, err := Load("/nonexistent/.datacur8")
 	if err == nil {
 		t.Error("expected error for nonexistent file")
+	}
+}
+
+func TestTOMLConfigLoadAndSemanticValidation(t *testing.T) {
+	path := filepath.Join(t.TempDir(), ".datacur8")
+	raw := `version: "0.0.0"
+types:
+  - name: records
+    input: toml
+    match: {include: ['.*']}
+    schema: {type: object}
+    output: {format: toml, path: out.toml}
+`
+	if err := os.WriteFile(path, []byte(raw), 0600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, errs := Validate(cfg, "dev"); len(errs) != 0 {
+		t.Fatal(errs)
+	}
+	if cfg.Types[0].Input != "toml" || cfg.Types[0].Output.Format != "toml" {
+		t.Fatal(cfg)
 	}
 }

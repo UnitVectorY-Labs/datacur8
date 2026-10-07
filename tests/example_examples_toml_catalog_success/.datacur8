@@ -1,0 +1,17 @@
+version: "0.0.0"
+types:
+  - name: records
+    input: toml
+    match:
+      include: ['^data/.*\.toml$']
+    schema:
+      type: object
+      required: [id]
+      properties:
+        id: {type: string}
+    output:
+      format: toml
+      path: out/nested/records.toml
+    constraints:
+      - type: unique
+        key: "$.id"

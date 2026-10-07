@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "records",
+    "file": "data/1.toml",
+    "message": "validating root: validating /properties/id: type: 1 has type \"integer\", want \"string\""
+  }
+]

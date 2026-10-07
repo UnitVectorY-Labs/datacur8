@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "records",
+    "file": "data/1.toml",
+    "message": "validating root: unexpected additional properties [\"extra\"]"
+  }
+]

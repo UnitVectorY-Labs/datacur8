@@ -9,6 +9,7 @@ import (
 
 	"github.com/UnitVectorY-Labs/datacur8/internal/config"
 	"github.com/UnitVectorY-Labs/datacur8/internal/hcldata"
+	"github.com/UnitVectorY-Labs/datacur8/internal/tomldata"
 	"gopkg.in/yaml.v3"
 )
 
@@ -56,6 +57,8 @@ func Export(items map[string][]any, typeDefs []config.TypeDef, rootDir string) (
 			content, err = marshalJSON(td.Name, data)
 		case "yaml":
 			content, err = marshalYAML(td.Name, data)
+		case "toml":
+			content, err = tomldata.Marshal(td.Name, data)
 		case "hcl":
 			content, err = hcldata.Marshal(td.Name, data)
 		case "csv":

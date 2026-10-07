@@ -1,0 +1,19 @@
+# catalog
+id = "widget-1"
+"dotted.key" = 'literal'
+meta.owner = "team-a"
+empty = {}
+mixed = [1, "two", true, {}, []]
+offset = 1979-05-27 07:32:00.1200-07:00
+local = 1979-05-27t07:32:00.123456789123
+date = 1979-05-27
+time = 07:32
+message = """
+hello
+world"""
+literal = '''hello
+world'''
+[[children]]
+id = "child-1"
+[[children]]
+id = "child-2"

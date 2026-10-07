@@ -17,6 +17,7 @@ import (
 	"github.com/UnitVectorY-Labs/datacur8/internal/hcldata"
 	"github.com/UnitVectorY-Labs/datacur8/internal/schema"
 	"github.com/UnitVectorY-Labs/datacur8/internal/tidy"
+	"github.com/UnitVectorY-Labs/datacur8/internal/tomldata"
 	"gopkg.in/yaml.v3"
 )
 
@@ -336,13 +337,19 @@ func parseAndValidateFiles(files []discovery.DiscoveredFile, cfg *config.Config)
 }
 
 // parseDataFile parses raw file bytes into a slice of data items.
-// JSON, YAML, and HCL produce a single-element slice; CSV produces one per row.
+// JSON, YAML, HCL, and TOML produce a single-element slice; CSV produces one per row.
 func parseDataFile(raw []byte, inputFormat string, td *config.TypeDef, filePath string) ([]map[string]any, []reportEntry) {
 	switch inputFormat {
 	case "json":
 		return parseJSON(raw, filePath)
 	case "yaml":
 		return parseYAML(raw, filePath)
+	case "toml":
+		data, err := tomldata.Parse(raw, filePath)
+		if err != nil {
+			return nil, []reportEntry{{Level: "error", File: filePath, Message: fmt.Sprintf("parsing TOML: %v", err)}}
+		}
+		return []map[string]any{data}, nil
 	case "hcl":
 		data, err := hcldata.Parse(raw, filePath)
 		if err != nil {

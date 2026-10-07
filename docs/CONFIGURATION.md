@@ -146,6 +146,28 @@ Type names must be unique across all entries in `types`. They are also used in e
 | `yaml` | YAML files parsed as objects. |
 | `csv` | CSV-style delimited files parsed as rows of objects; comma by default, tab for TSV via `csv.delimiter`. |
 | `hcl` | HCL2 attribute files parsed as one object per file. |
+| `toml` | TOML 1.1.0 files parsed as one object per file. |
+
+#### TOML input
+
+Use `input: toml` with include patterns such as `'^data/.*\.toml$'`. datacur8 supports **TOML 1.1.0**, implemented by [go-toml v2.4.3](https://github.com/pelletier/go-toml/tree/v2.4.3). This includes 1.1 features such as omitted seconds, multiline inline tables with trailing commas, and `\e`/`\xHH` string escapes. The `.datacur8` file remains YAML; there are no TOML-specific configuration options.
+
+One document is one record. Quoted/dotted keys, nested and inline tables, arrays of tables, heterogeneous arrays, and basic/literal/multiline strings map to objects, arrays, and scalar values. Nested tables never create additional top-level records. Strings retain their contents without variable expansion, expression evaluation, Unicode normalization, or schema-driven coercion. The existing inline JSON Schema, strict mode, and constraints apply after conversion.
+
+Native temporal values become strings:
+
+| TOML value | Normalized string |
+|---|---|
+| Offset date-time `1979-05-27 07:32:00.1200-07:00` | `1979-05-27T07:32:00.12-07:00` |
+| Local date-time `1979-05-27t07:32:00.1200` | `1979-05-27T07:32:00.12` |
+| Local date `1979-05-27` | `1979-05-27` |
+| Local time `07:32` | `07:32:00` |
+
+Offset date-times use RFC3339 with their numeric offset retained (zero offset uses `Z`). Local values gain no timezone or date. Seconds are explicit, `T` is uppercase, and fractional seconds have up to nine digits with trailing zeros removed; additional fractional digits are truncated to nanoseconds, never rounded. JSON Schema sees strings, including for native TOML dates/times.
+
+Integers must fit TOML's signed 64-bit range and survive conversion to the common float64 model exactly. All integers from −2^53 through 2^53 are exact; larger magnitudes are accepted only when exactly representable (for example, 9007199254740994 and −9223372036854775808). 9007199254740993 and 9223372036854775807 are rejected instead of rounded. Finite floats are accepted; `nan`, `inf`, and their signed variants are rejected because JSON cannot represent them. TOML has no null literal.
+
+Syntax errors, duplicate keys, and invalid table redefinitions include file, line, and column. Conversion errors include the file and a nested key/index path. Input, conversion, and schema failures return exit **2** and block export. Tidy parses and checks these same conversion limits before writing; see [TOML export](#toml-export) for output restrictions.
 
 #### HCL input
 
@@ -548,6 +570,7 @@ Semantic validation checks that `references.type` matches a defined entry in `ty
 | `jsonl` | Write newline-delimited JSON objects |
 | `csv` | Write schema-defined scalar columns as a header and one row per item |
 | `hcl` | Write an HCL attribute named after the type whose value is the exported array |
+| `toml` | Write one type-name key containing the array of records |
 
 ```yaml
 output:
@@ -555,7 +578,7 @@ output:
   format: json
 ```
 
-Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as JSON, YAML, JSONL, HCL, or CSV (subject to CSV's schema and value restrictions).
+Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as JSON, YAML, JSONL, HCL, CSV, or TOML (subject to each output format's restrictions).
 
 #### CSV delimiters and TSV
 
@@ -630,3 +653,13 @@ Complete scalar records can be exported and read back using `input: csv` with th
 HCL exports use the same aggregate shape as JSON and YAML, expressed as `type_name = [{ ... }]`. An empty dataset exports as `type_name = []`. Object keys are sorted for deterministic output. An aggregate export is a single object containing an array, so it is not the same shape as the individual input items.
 
 HCL uses Unicode NFC normalization for strings. Exporting strings from JSON or YAML can therefore change their Unicode encoding while preserving their text. Object keys must already be NFC-normalized for HCL export; unsupported keys produce an export error.
+
+#### TOML export
+
+Set `output.format: toml`. Aggregate output contains one type-name key with an array of records, using inline tables: `records = [{id = 'a', owner = {team = 'platform'}}]`. Zero records emit an explicit `records = []`. Empty objects/arrays and mixed arrays remain present. Items retain discovery order; keys are sorted recursively and quoted as necessary. Unusual and Unicode keys/strings are preserved without Unicode normalization.
+
+An aggregate export is one object containing an array, not multiple individual input records. Reading it with `input: toml` validates that wrapper as one record. JSON strings remain TOML strings even when their text resembles a date or time; native temporal types are never inferred from strings. This includes temporal strings produced by TOML input normalization.
+
+Explicit null at any depth, including inside arrays, is rejected with a nested key/index path and zero-based record index. Missing optional properties remain absent. Non-finite floats, unsupported value types, integers outside signed 64-bit range, and native integers that cannot survive float64 normalization exactly are also rejected. Precision already lost by JSON/HCL/CSV source parsing cannot be recovered. Conversion or write failures return exit **3**; schema-invalid source data returns exit **2** first. Conversion finishes before replacing the destination. Outputs for separate types are independent.
+
+TOML tidy reserializes validated native TOML values with sorted keys and inline tables. It removes all comments, changes ordering and spelling/quoting, and preserves values within the supported nanosecond precision. Dates/times retain native TOML types during tidy, unlike export through the JSON model. Numeric base/separator spelling can change. Formatting is idempotent. Check mode writes nothing and returns **5** for changes; `--write` applies changes. Invalid TOML or unsupported input values return **4** without rewriting that file.

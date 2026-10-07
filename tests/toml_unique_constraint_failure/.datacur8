@@ -1,0 +1,11 @@
+version: "0.0.0"
+types:
+  - name: widget
+    input: toml
+    match:
+      include: ["^data/.*\\.toml$"]
+    schema:
+      type: object
+    constraints:
+      - type: unique
+        key: "$.id"

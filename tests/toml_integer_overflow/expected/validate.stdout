@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/1.toml",
+    "message": "parsing TOML: data/1.toml:1:3: toml: decimal number is too large to fit in a 64-bit signed integer"
+  }
+]
