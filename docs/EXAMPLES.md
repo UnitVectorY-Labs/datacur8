@@ -131,6 +131,105 @@ teamId: alpha
 - The service's parent team folder matches its `teamId`
 - The service's file name matches its `id`
 
+## HCL Widget Catalog
+
+This example uses one HCL2 attribute file per widget, validates each item with JSON Schema, and exports an aggregate HCL catalog. It is covered by `tests/example_examples_hcl_catalog_success`.
+
+### Configuration
+
+`.datacur8`:
+
+```yaml
+version: "0.0.0"
+
+types:
+  - name: widgets
+    input: hcl
+    match:
+      include:
+        - "^data/.*\\.hcl$"
+    schema:
+      type: object
+      required: [id, enabled, price, tags, metadata]
+      properties:
+        id:
+          type: string
+        enabled:
+          type: boolean
+        price:
+          type: number
+          minimum: 0
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          required: [owner]
+          properties:
+            owner:
+              type: string
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"
+    output:
+      path: "out/widgets.hcl"
+      format: hcl
+```
+
+### Data files
+
+`data/widget-1.hcl`:
+
+```hcl
+id      = "widget-1"
+enabled = true
+price   = 12.5
+tags    = ["hardware", "featured"]
+metadata = {
+  owner = "team-a"
+}
+```
+
+`data/widget-2.hcl`:
+
+```hcl
+id      = "widget-2"
+enabled = false
+price   = 8
+tags    = []
+metadata = {
+  owner = "team-b"
+}
+```
+
+Run `datacur8 validate` to check the converted objects against the schema and enforce unique widget IDs. Run `datacur8 export` to create `out/widgets.hcl`:
+
+```hcl
+widgets = [{
+  enabled = true
+  id      = "widget-1"
+  metadata = {
+    owner = "team-a"
+  }
+  price = 12.5
+  tags  = ["hardware", "featured"]
+  }, {
+  enabled = false
+  id      = "widget-2"
+  metadata = {
+    owner = "team-b"
+  }
+  price = 8
+  tags  = []
+}]
+```
+
+Exports order items by input file path and sort object keys. The output wraps the items in a `widgets` array, just as JSON and YAML exports do. To use JSON output instead, set `output.format: json` and `output.path: out/widgets.json`; the input files and schema stay the same.
+
+Top-level HCL blocks, variables, attribute references, and functions are unsupported. Use attributes with literal values or self-contained expressions; see [HCL input](/configuration#hcl-input). `datacur8 tidy --write` formats these files while preserving comments and attribute order.
+
 ## CSV Product Catalog
 
 This example validates a CSV product catalog with schema-guided type conversion.

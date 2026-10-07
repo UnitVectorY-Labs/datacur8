@@ -1,0 +1,3 @@
+widget "one" {
+  id = "one"
+}

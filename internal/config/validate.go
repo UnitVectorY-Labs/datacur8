@@ -71,9 +71,9 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 
 		// input format
 		switch t.Input {
-		case "json", "yaml", "csv":
+		case "json", "yaml", "csv", "hcl":
 		default:
-			errs = append(errs, fmt.Errorf("%s: input %q must be json, yaml, or csv", prefix, t.Input))
+			errs = append(errs, fmt.Errorf("%s: input %q must be json, yaml, csv, or hcl", prefix, t.Input))
 		}
 
 		// match.include
@@ -101,9 +101,9 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 		// output
 		if t.Output != nil {
 			switch t.Output.Format {
-			case "json", "yaml", "jsonl":
+			case "json", "yaml", "jsonl", "hcl":
 			default:
-				errs = append(errs, fmt.Errorf("%s: output.format %q must be json, yaml, or jsonl", prefix, t.Output.Format))
+				errs = append(errs, fmt.Errorf("%s: output.format %q must be json, yaml, jsonl, or hcl", prefix, t.Output.Format))
 			}
 			if prev, exists := outputPaths[t.Output.Path]; exists {
 				errs = append(errs, fmt.Errorf("%s: output.path %q conflicts with type %q", prefix, t.Output.Path, prev))

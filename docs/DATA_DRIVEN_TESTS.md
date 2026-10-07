@@ -133,6 +133,7 @@ Current examples include:
 - `tests/example_readme_quick_start_foreign_key_failure`
 - `tests/example_examples_team_service_registry_success`
 - `tests/example_examples_team_service_registry_foreign_key_failure`
+- `tests/example_examples_hcl_catalog_success`
 - `tests/example_examples_csv_product_catalog_success`
 - `tests/example_examples_csv_product_catalog_foreign_key_failure`
 - `tests/example_examples_csv_product_catalog_type_conversion_failure`

@@ -1,0 +1,14 @@
+[
+  {
+    "level": "error",
+    "type": "widget",
+    "file": "data/a.hcl",
+    "message": "[unique] duplicate value \"duplicate\" for key $.id"
+  },
+  {
+    "level": "error",
+    "type": "widget",
+    "file": "data/b.hcl",
+    "message": "[unique] duplicate value \"duplicate\" for key $.id"
+  }
+]

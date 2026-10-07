@@ -1,0 +1,33 @@
+version: "0.0.0"
+types:
+  - name: json_widget
+    input: json
+    match:
+      include: ['^data/.*\.json$']
+    schema:
+      type: object
+    output:
+      path: out/json.hcl
+      format: hcl
+  - name: yaml_widget
+    input: yaml
+    match:
+      include: ['^data/.*\.yaml$']
+    schema:
+      type: object
+    output:
+      path: out/yaml.hcl
+      format: hcl
+  - name: csv_widget
+    input: csv
+    match:
+      include: ['^data/.*\.csv$']
+    schema:
+      type: object
+      properties:
+        id: {type: string}
+        price: {type: number}
+        enabled: {type: boolean}
+    output:
+      path: out/csv.hcl
+      format: hcl

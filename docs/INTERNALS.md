@@ -32,6 +32,7 @@ internal/
   constraints/           # Constraint evaluation engine
   discovery/             # File discovery and type matching
   export/                # Output file generation
+  hcldata/               # HCL parsing, JSON conversion, export, and formatting
   schema/                # JSON Schema validation with strict mode
   selector/              # JSONPath-like selector parser and evaluator
   tidy/                  # File formatting and normalization
@@ -40,13 +41,14 @@ internal/
 ### Package dependencies
 
 ```
-main → cli → config, constraints, discovery, export, schema, tidy
+main → cli → config, constraints, discovery, export, hcldata, schema, tidy
 constraints → config, selector
 discovery → config
-export → config
+export → config, hcldata
+hcldata → (external: hashicorp/hcl/v2, zclconf/go-cty)
 schema → (external: google/jsonschema-go)
 selector → (standalone)
-tidy → (standalone)
+tidy → hcldata
 ```
 
 ## Validation Phases
@@ -90,9 +92,10 @@ Discovery pre-compiles all regex patterns for efficiency. The result is a sorted
 
 1. Read and parse each discovered file according to its input format
 2. For JSON and YAML: parse into a single `map[string]any`
-3. For CSV: validate headers, convert each row into a typed `map[string]any`
-4. Apply strict mode overlay to the schema (if configured)
-5. Validate each item against its JSON Schema using `google/jsonschema-go`
+3. For HCL: parse attributes, evaluate without external context, and convert values through JSON into one `map[string]any`
+4. For CSV: validate headers, convert each row into a typed `map[string]any`
+5. Apply strict mode overlay to the schema (if configured)
+6. Validate each item against its JSON Schema using `google/jsonschema-go`
 
 CSV parsing is notable: it uses the schema to guide type conversion of cell values (string → boolean, number, integer), and validates headers against schema properties and required fields.
 
@@ -154,6 +157,12 @@ CSV files are handled specially because they don't have native types — every c
 
 If any header validation fails, no rows are processed. If any cell cannot be converted, the entire file is rejected with per-row error messages.
 
+## HCL Parsing and Formatting
+
+HCL input uses HashiCorp HCL v2. Each file is an attribute body representing one item. Block syntax is rejected because block labels and repetition have no schema-independent JSON mapping. Attribute expressions are evaluated without variables or functions; self-contained expressions are supported. Values pass through JSON conversion before schema validation, giving the pipeline the same maps, arrays, scalar values, and numeric representation as JSON input. JSON Schema and constraint evaluation remain format-independent.
+
+HCL export serializes the aggregate object as one type-named attribute containing an array, using deterministic key ordering. HCL tidy uses `hclwrite.Format` on source bytes to preserve comments and attribute order.
+
 ## Export Ordering
 
 Export produces deterministic output through strict ordering rules:
@@ -167,6 +176,7 @@ Export produces deterministic output through strict ordering rules:
 - **JSON**: Items are wrapped in an object keyed by the type name, with the value being an array. Pretty-printed with 2-space indentation.
 - **YAML**: Same structure as JSON but serialized as YAML.
 - **JSONL**: One minified JSON object per line.
+- **HCL**: One attribute named after the type containing the item array (`type_name = [{ ... }]`); object keys are sorted.
 
 Output directories are created automatically if they don't exist.
 
@@ -186,4 +196,5 @@ This approach is simple and fast for the expected use case (hundreds to low thou
 - File discovery skips common non-data directories early
 - Schema validation uses a compiled schema evaluator
 - Constraint evaluation builds indexes in a single pass, then validates in a second pass
-- Export and tidy operate on already-parsed data, avoiding re-reads
+- Export operates on already-parsed data
+- HCL tidy formats source bytes to preserve comments and attribute order

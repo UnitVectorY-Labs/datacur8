@@ -24,13 +24,13 @@ Reference for validation conditions, error messages, and output formats returned
 | Configuration | `1` | Invalid `strict_mode` | Message pattern: strict_mode \"X\" is invalid; must be DISABLED, ENABLED, or FORCE. |
 | Configuration | `1` | Duplicate type name | Message pattern: types[N](name): duplicate type name \"name\". Each type name must be unique. |
 | Configuration | `1` | Invalid type name | Message pattern: types[N](name): type name must match ^[a-zA-Z][a-zA-Z0-9_]*$. Type names must start with a letter and use only letters, digits, and underscores. |
-| Configuration | `1` | Invalid input format | Message pattern: types[N](name): input \"X\" must be json, yaml, or csv. |
+| Configuration | `1` | Invalid input format | Message pattern: types[N](name): input \"X\" must be json, yaml, csv, or hcl. |
 | Configuration | `1` | Empty include patterns | Message pattern: types[N](name): match.include must have at least 1 pattern. Every type needs at least one `match.include` pattern. |
 | Configuration | `1` | Invalid regex pattern | Message pattern: types[N](name): match.include[M] invalid regex: ... or types[N](name): match.exclude[M] invalid regex: ... A `match.include` or `match.exclude` regex failed to compile. |
 | Configuration | `1` | Missing schema | Message pattern: types[N](name): schema is required. Every type must define a schema. |
 | Configuration | `1` | Invalid schema root type | Message pattern: types[N](name): schema.type must be \"object\". All datacur8 schemas must have root `type: object`. |
 | Configuration | `1` | Output path conflict | Message pattern: types[N](name): output.path \"path\" conflicts with type \"other\". Two types cannot write to the same output path. |
-| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, or jsonl. |
+| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, jsonl, or hcl. |
 | Configuration | `1` | Invalid constraint selector | Message pattern: types[N](name).constraints[M]: key \"X\" is not a valid selector: ... Valid selectors include `$`, `$.field`, `$.a.b.c`, and `$.items[*].id`. |
 | Configuration | `1` | Unknown constraint type | Message pattern: types[N](name).constraints[M]: unknown constraint type \"X\". Supported types: `unique`, `foreign_key`, `path_equals_attr`. |
 | Configuration | `1` | Missing references for `foreign_key` | Message pattern: types[N](name).constraints[M]: references is required for foreign_key. |
@@ -40,6 +40,7 @@ Reference for validation conditions, error messages, and output formats returned
 | Discovery | `1` | File matches multiple types | Message pattern: file \"path\" matches multiple types: typeA, typeB. Each file must match exactly one type; adjust include/exclude patterns to remove ambiguity. |
 | Discovery | `1` | Subdirectory config file found | Message pattern: found .datacur8 in subdirectory \"dir\"; only root .datacur8 is allowed. datacur8 supports a single `.datacur8` at the repository root only. |
 | Data Validation | `2` | JSON/YAML parse failure | Message starts with: parsing JSON: ... or parsing YAML: ... File content is not valid JSON or YAML. |
+| Data Validation | `2` | HCL parse or evaluation failure | Message starts with: parsing HCL: ... Invalid HCL syntax, blocks, variables, attribute references, and function calls are rejected. HCL values must evaluate to JSON-compatible data without external context. |
 | Data Validation | `2` | CSV parse failure | Message starts with: parsing CSV: ... File content is not valid CSV. |
 | Data Validation | `2` | CSV header not in schema | Message pattern: CSV header \"X\" not found in schema properties. Every CSV header must exist in schema `properties`. |
 | Data Validation | `2` | CSV missing required property | Message pattern: required property \"X\" missing from CSV headers. Every property in `schema.required` must appear in the CSV header row. |

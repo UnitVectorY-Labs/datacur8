@@ -1,0 +1,31 @@
+version: "0.0.0"
+types:
+  - name: widget
+    input: hcl
+    match:
+      include: ["^data/.*\\.hcl$"]
+    schema:
+      type: object
+      required: [id, name, enabled, price, tags, metadata]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        enabled: {type: boolean}
+        price: {type: number}
+        tags:
+          type: array
+          items: {type: string}
+        metadata:
+          type: object
+          required: [owner]
+          properties:
+            owner: {type: string}
+            note: {type: [string, 'null']}
+          additionalProperties: false
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"
+    output:
+      path: out/widgets.json
+      format: json

@@ -14,6 +14,7 @@ import (
 	"github.com/UnitVectorY-Labs/datacur8/internal/constraints"
 	"github.com/UnitVectorY-Labs/datacur8/internal/discovery"
 	"github.com/UnitVectorY-Labs/datacur8/internal/export"
+	"github.com/UnitVectorY-Labs/datacur8/internal/hcldata"
 	"github.com/UnitVectorY-Labs/datacur8/internal/schema"
 	"github.com/UnitVectorY-Labs/datacur8/internal/tidy"
 	"gopkg.in/yaml.v3"
@@ -335,13 +336,19 @@ func parseAndValidateFiles(files []discovery.DiscoveredFile, cfg *config.Config)
 }
 
 // parseDataFile parses raw file bytes into a slice of data items.
-// JSON and YAML produce a single-element slice; CSV produces one per row.
+// JSON, YAML, and HCL produce a single-element slice; CSV produces one per row.
 func parseDataFile(raw []byte, inputFormat string, td *config.TypeDef, filePath string) ([]map[string]any, []reportEntry) {
 	switch inputFormat {
 	case "json":
 		return parseJSON(raw, filePath)
 	case "yaml":
 		return parseYAML(raw, filePath)
+	case "hcl":
+		data, err := hcldata.Parse(raw, filePath)
+		if err != nil {
+			return nil, []reportEntry{{Level: "error", File: filePath, Message: fmt.Sprintf("parsing HCL: %v", err)}}
+		}
+		return []map[string]any{data}, nil
 	case "csv":
 		return parseCSV(raw, td, filePath)
 	default:

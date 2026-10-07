@@ -1,0 +1,1 @@
+{"id": "widget-1", "metadata": {"not an identifier": "${value} %{if true}"}, "empty": null, "values": [1, true, "hello"]}
