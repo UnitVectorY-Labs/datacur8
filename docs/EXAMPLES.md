@@ -539,3 +539,55 @@ headers. Add `csv: {delimiter: "\t"}` under `output` for TSV export instead.
 The input/output delimiters default independently to comma.
 See [CSV delimiters and TSV](/configuration#csv-delimiters-and-tsv) for quoting,
 permitted separators, empty data, conversion limits, and errors.
+
+## TOML catalog
+
+This TOML 1.1.0 example is covered by `tests/example_examples_toml_catalog_success`. Each file is one record; nested tables stay within that record.
+
+`.datacur8`:
+
+```yaml
+version: "0.0.0"
+types:
+  - name: records
+    input: toml
+    match:
+      include: ['^data/.*\.toml$']
+    schema:
+      type: object
+      required: [id]
+      properties:
+        id: {type: string}
+    output:
+      format: toml
+      path: out/nested/records.toml
+    constraints:
+      - type: unique
+        key: "$.id"
+```
+
+`data/1.toml`:
+
+```toml
+id = "widget-1"
+released = 2026-10-07
+[owner]
+team = "platform"
+```
+
+`data/2.toml`:
+
+```toml
+id = "widget-2"
+released = 2026-10-08
+[owner]
+team = "platform"
+```
+
+Run `datacur8 validate`, then `datacur8 export`. The generated `out/nested/records.toml` contains:
+
+```toml
+records = [{id = 'widget-1', owner = {team = 'platform'}, released = '2026-10-07'}, {id = 'widget-2', owner = {team = 'platform'}, released = '2026-10-08'}]
+```
+
+Native dates become strings during validation/export. The aggregate is a single wrapper object, distinct from individual input records. `datacur8 tidy --write` retains native dates but removes comments and sorts keys. See [TOML conversion rules](/configuration#toml-input) for temporal precision, exact integer limits, null rejection, and formatting policy.

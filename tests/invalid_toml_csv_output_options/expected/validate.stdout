@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "type": "config",
+    "message": "configuration does not match schema: validating https://datacur8.unitvectorylabs.com/schemas/config.schema.json: validating /properties/types: validating /properties/types/items: validating /properties/types/items/properties/output: validating /properties/types/items/properties/output/allOf/0: validating /properties/types/items/properties/output/allOf/0/then: validating /properties/types/items/properties/output/allOf/0/then/properties/format: const: toml does not equal csv"
+  }
+]

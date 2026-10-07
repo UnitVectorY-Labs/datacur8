@@ -1,0 +1,1 @@
+records = [{id = 'widget-1', owner = {team = 'platform'}, released = '2026-10-07'}, {id = 'widget-2', owner = {team = 'platform'}, released = '2026-10-08'}]

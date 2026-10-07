@@ -1,0 +1,16 @@
+version: "0.0.0"
+types:
+  - name: records
+    input: toml
+    match:
+      include: ['^data/.*\.toml$']
+    schema:
+      type: object
+      properties:
+        id: {type: string}
+        active: {type: boolean}
+        count: {type: integer}
+    output:
+      format: csv
+      csv: {delimiter: "\t"}
+      path: out/nested/records.tsv

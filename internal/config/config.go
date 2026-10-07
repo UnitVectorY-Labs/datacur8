@@ -16,7 +16,7 @@ type Config struct {
 
 type TypeDef struct {
 	Name        string          `yaml:"name"`
-	Input       string          `yaml:"input"`
+	Input       string          `yaml:"input"` // json, yaml, csv, hcl, or toml
 	CSV         *CSVOptions     `yaml:"csv,omitempty"`
 	Match       MatchDef        `yaml:"match"`
 	Schema      map[string]any  `yaml:"schema"`
@@ -31,7 +31,7 @@ type MatchDef struct {
 
 type OutputDef struct {
 	Path   string      `yaml:"path"`
-	Format string      `yaml:"format"`
+	Format string      `yaml:"format"` // json, yaml, jsonl, hcl, csv, or toml
 	CSV    *CSVOptions `yaml:"csv,omitempty"`
 }
 

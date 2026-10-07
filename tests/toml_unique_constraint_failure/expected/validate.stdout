@@ -1,0 +1,14 @@
+[
+  {
+    "level": "error",
+    "type": "widget",
+    "file": "data/a.toml",
+    "message": "[unique] duplicate value \"duplicate\" for key $.id"
+  },
+  {
+    "level": "error",
+    "type": "widget",
+    "file": "data/b.toml",
+    "message": "[unique] duplicate value \"duplicate\" for key $.id"
+  }
+]

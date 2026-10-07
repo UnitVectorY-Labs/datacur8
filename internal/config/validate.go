@@ -71,9 +71,9 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 
 		// input format
 		switch t.Input {
-		case "json", "yaml", "csv", "hcl":
+		case "json", "yaml", "csv", "hcl", "toml":
 		default:
-			errs = append(errs, fmt.Errorf("%s: input %q must be json, yaml, csv, or hcl", prefix, t.Input))
+			errs = append(errs, fmt.Errorf("%s: input %q must be json, yaml, csv, hcl, or toml", prefix, t.Input))
 		}
 
 		errs = append(errs, validateCSVOptions(prefix, t.Input, t.CSV)...)
@@ -104,9 +104,9 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 		if t.Output != nil {
 			errs = append(errs, validateCSVOptions(prefix+".output", t.Output.Format, t.Output.CSV)...)
 			switch t.Output.Format {
-			case "json", "yaml", "jsonl", "hcl", "csv":
+			case "json", "yaml", "jsonl", "hcl", "csv", "toml":
 			default:
-				errs = append(errs, fmt.Errorf("%s: output.format %q must be json, yaml, jsonl, hcl, or csv", prefix, t.Output.Format))
+				errs = append(errs, fmt.Errorf("%s: output.format %q must be json, yaml, jsonl, hcl, csv, or toml", prefix, t.Output.Format))
 			}
 			if t.Output.Format == "csv" {
 				if _, err := CSVColumns(t.Schema); err != nil {

@@ -24,13 +24,13 @@ Reference for validation conditions, error messages, and output formats returned
 | Configuration | `1` | Invalid `strict_mode` | Message pattern: strict_mode \"X\" is invalid; must be DISABLED, ENABLED, or FORCE. |
 | Configuration | `1` | Duplicate type name | Message pattern: types[N](name): duplicate type name \"name\". Each type name must be unique. |
 | Configuration | `1` | Invalid type name | Message pattern: types[N](name): type name must match ^[a-zA-Z][a-zA-Z0-9_]*$. Type names must start with a letter and use only letters, digits, and underscores. |
-| Configuration | `1` | Invalid input format | Message pattern: types[N](name): input \"X\" must be json, yaml, csv, or hcl. |
+| Configuration | `1` | Invalid input format | Message pattern: types[N](name): input \"X\" must be json, yaml, csv, hcl, or toml. |
 | Configuration | `1` | Empty include patterns | Message pattern: types[N](name): match.include must have at least 1 pattern. Every type needs at least one `match.include` pattern. |
 | Configuration | `1` | Invalid regex pattern | Message pattern: types[N](name): match.include[M] invalid regex: ... or types[N](name): match.exclude[M] invalid regex: ... A `match.include` or `match.exclude` regex failed to compile. |
 | Configuration | `1` | Missing schema | Message pattern: types[N](name): schema is required. Every type must define a schema. |
 | Configuration | `1` | Invalid schema root type | Message pattern: types[N](name): schema.type must be \"object\". All datacur8 schemas must have root `type: object`. |
 | Configuration | `1` | Output path conflict | Message pattern: types[N](name): output.path \"path\" conflicts with type \"other\". Two types cannot write to the same output path. |
-| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, jsonl, hcl, or csv. |
+| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, jsonl, hcl, csv, or toml. |
 | Configuration | `1` | Invalid constraint selector | Message pattern: types[N](name).constraints[M]: key \"X\" is not a valid selector: ... Valid selectors include `$`, `$.field`, `$.a.b.c`, and `$.items[*].id`. |
 | Configuration | `1` | Unknown constraint type | Message pattern: types[N](name).constraints[M]: unknown constraint type \"X\". Supported types: `unique`, `foreign_key`, `path_equals_attr`. |
 | Configuration | `1` | Missing references for `foreign_key` | Message pattern: types[N](name).constraints[M]: references is required for foreign_key. |
@@ -70,3 +70,17 @@ Reference for validation conditions, error messages, and output formats returned
 | Constraint Reference | N/A | `path_equals_attr` example | Example shape: `match.include` uses a named capture (for example `team`), then the constraint sets `path_selector` to `path.team` and compares against `references.key` such as `$.teamId`. |
 
 All CSV conditions also apply to tab-delimited inputs configured with `csv.delimiter: "\t"`. Structured `row` values count logical data rows from zero, not physical lines. Delimiter selection does not change exit codes or validation gating.
+
+## TOML conditions
+
+| Stage | Exit | Condition |
+|---|---|---|
+| Configuration | `1` | Unknown input/output format or unsupported TOML-specific options; `.datacur8` must remain YAML. |
+| Input | `2` | Invalid TOML 1.1.0, duplicate keys, or invalid table redefinitions; diagnostic includes file, line, and column. |
+| Conversion | `2` | Non-finite float or integer that cannot normalize exactly to float64; diagnostic includes file and nested key/index path. |
+| Validation | `2` | Converted TOML record fails JSON Schema, strict mode, or a constraint; export remains validation-gated. |
+| Export | `3` | Explicit null at any depth, unsupported value, inexact native integer, or write failure. Conversion errors include the type, record index, and key/index path and preserve existing output. |
+| Tidy | `4` | Invalid TOML or unsupported input conversion; affected source file is not rewritten. |
+| Tidy check | `5` | Canonical reserialization differs; check mode never writes. |
+
+Temporal values normalize to strings before schema/constraint checks. See [TOML conversion rules](/configuration#toml-input) for offset handling, fractional precision, integer limits, and the comment/order policy.

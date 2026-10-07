@@ -32,6 +32,7 @@ internal/
   constraints/           # Constraint evaluation engine
   discovery/             # File discovery and type matching
   export/                # Output file generation
+  tomldata/              # TOML 1.1 parsing, checked JSON conversion, export, canonical tidy
   hcldata/               # HCL parsing, JSON conversion, export, and formatting
   schema/                # JSON Schema validation with strict mode
   selector/              # JSONPath-like selector parser and evaluator
@@ -41,14 +42,15 @@ internal/
 ### Package dependencies
 
 ```
-main → cli → config, constraints, discovery, export, hcldata, schema, tidy
+main → cli → config, constraints, discovery, export, hcldata, tomldata, schema, tidy
 constraints → config, selector
 discovery → config
-export → config, hcldata
+export → config, hcldata, tomldata
 hcldata → (external: hashicorp/hcl/v2, zclconf/go-cty)
 schema → (external: google/jsonschema-go)
 selector → (standalone)
-tidy → hcldata
+tidy → hcldata, tomldata
+tomldata → (external: pelletier/go-toml/v2)
 ```
 
 ## Validation Phases
@@ -163,6 +165,14 @@ HCL input uses HashiCorp HCL v2. Each file is an attribute body representing one
 
 HCL export serializes the aggregate object as one type-named attribute containing an array, using deterministic key ordering. HCL tidy uses `hclwrite.Format` on source bytes to preserve comments and attribute order.
 
+## TOML Parsing and Formatting
+
+`tomldata` isolates go-toml v2.4.3 (TOML 1.1.0) from the format-independent pipeline. `Parse` decodes one document, preserves parser file/line/column diagnostics, and recursively converts maps/arrays/scalars. Temporal types become canonical strings with up to nanosecond precision; local values never acquire a timezone. Signed integers are checked with `math/big` for exact float64 conversion; non-finite floats are rejected. Sorted traversal makes conversion errors deterministic and includes nested key/index paths.
+
+`Marshal` checks the aggregate recursively before serialization, rejecting null even inside nested arrays/objects. Native integer values from existing formats must fit signed 64-bit range and normalize exactly. The encoder sorts map keys and uses `SetTablesInline(true)` to preserve empty objects and heterogeneous arrays. Strings are never converted to temporal types. Empty datasets explicitly encode `type_name = []`. `Format` validates conversion limits but encodes the original decoded values, retaining native temporal/integer types. It removes comments, sorts keys, and canonicalizes spelling instead of preserving source formatting. Both parse and tidy truncate fractional digits beyond nanoseconds.
+
+The new dependency is pure Go, requires Go 1.21, adds no runtime transitive dependencies, and supports the existing release OS/architecture matrix. No release matrix changes are required.
+
 ## Export Ordering
 
 Export produces deterministic output through strict ordering rules:
@@ -177,6 +187,7 @@ Export produces deterministic output through strict ordering rules:
 - **YAML**: Same structure as JSON but serialized as YAML.
 - **CSV**: `config.CSVColumns` validates the export schema subset during semantic configuration validation and supplies sorted names/types to `export.marshalCSV`. The encoder checks every item for complete scalar cells and undeclared keys, formats finite numbers and signed 64-bit integers, and uses `encoding/csv` with LF records. A single empty cell is explicitly quoted to avoid the reader skipping a blank line. It flushes and checks writer errors.
 - **JSONL**: One minified JSON object per line.
+- **TOML**: One type-name key containing inline-table records; keys sorted recursively, explicit empty dataset, checked representability.
 - **HCL**: One attribute named after the type containing the item array (`type_name = [{ ... }]`); object keys are sorted.
 
 Output directories are created automatically if they don't exist. Each output is serialized in memory before `os.WriteFile`, so conversion failures do not truncate an existing destination; outputs are independent rather than a global transaction. CSV input parses integers with `strconv.ParseInt(..., 10, 64)` before converting to the existing float64 representation, avoiding platform-dependent `int` limits. See [CSV export](/configuration#csv-export) for supported schemas and parser precision limits.

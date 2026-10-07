@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/1.toml",
+    "message": "parsing TOML: data/1.toml:2:2: toml: table a already exists"
+  }
+]

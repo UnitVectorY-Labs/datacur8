@@ -87,9 +87,12 @@ Output formats:
 | `yaml` | YAML object with one key (the type name) whose value is the exported array |
 | `jsonl` | One minified JSON object per line |
 | `csv` | Alphabetically sorted schema columns, one header and one row per item (no wrapper) |
+| `toml` | TOML type-name key containing an array of inline-table records (`records = [{id = 'a'}]`) |
 | `hcl` | HCL attribute named after the type whose value is the exported array (`widgets = [{ ... }]`) |
 
 Input and export formats are configured independently in `.datacur8`; `--format` controls diagnostics only. HCL input uses one attribute-based object per file and is validated against the same JSON Schema as the other input formats. See [Configuration](/configuration#hcl-input) for supported HCL expressions.
+
+TOML input is one record per document, using the same schema and constraints. TOML export wraps records under the type name; empty datasets emit `type_name = []`. Dates/times normalize to strings, non-finite input floats and inexact integers return exit 2, and explicit null anywhere in an export returns exit 3 without replacing the output. See [TOML input and conversion rules](/configuration#toml-input). `.datacur8` remains YAML and `--format` remains diagnostics-only (`text|json|yaml`).
 
 CSV export supports complete flat scalar records; see [CSV export](/configuration#csv-export) for schema restrictions, numeric limits, and round-trip behavior. Empty datasets emit the schema-derived header. Unsupported CSV schemas return exit 1; invalid source data returns exit 2; missing cells, undeclared keys, and other conversion or write failures return exit 3. Conversion failure preserves an existing destination.
 
@@ -120,6 +123,7 @@ datacur8 tidy [--write] [--format text|json|yaml]
 - **JSON**: pretty-printed with sorted keys
 - **YAML**: stable formatting with sorted keys; comments are removed
 - **CSV/TSV**: sorted columns (alphabetical), with cells reordered together and the configured input delimiter preserved
+- **TOML**: TOML 1.1.0 canonical reserialization; comments removed, keys sorted, tables inline, native temporal types retained (nanosecond precision)
 - **HCL**: canonical HCL formatting; comments and attribute order are preserved
 
 Tidy does not change parsed data values. If the global `tidy.enabled` is set to `false`, tidy exits immediately.

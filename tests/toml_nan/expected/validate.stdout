@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/1.toml",
+    "message": "parsing TOML: data/1.toml: $[\"a\"]: non-finite float is not representable in JSON"
+  }
+]

@@ -1,0 +1,11 @@
+version: "0.0.0"
+types:
+  - name: records
+    input: toml
+    match:
+      include: ['^data/.*\.toml$']
+    schema:
+      type: object
+    output:
+      format: toml
+      path: out/nested/records.toml
