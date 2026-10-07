@@ -1,0 +1,16 @@
+version: "0.0.0"
+types:
+  - name: records
+    input: ndjson
+    match:
+      include: ['^data/.*\.(jsonl|ndjson)$']
+    schema:
+      type: object
+      properties:
+        id: {type: string}
+        count: {type: integer}
+        active: {type: boolean}
+      required: [id]
+    output:
+      format: hcl
+      path: out/nested/records.hcl

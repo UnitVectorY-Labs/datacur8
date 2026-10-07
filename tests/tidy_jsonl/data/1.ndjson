@@ -1,0 +1,2 @@
+ {"z": null, "id": "α", "nested": {"z": [], "a": [{"β": "<雪>", "a": "escaped\nnewline"}, null, true, 3]}, "odd.key": {}, "number": 9007199254740993}
+ {"id":"second"}

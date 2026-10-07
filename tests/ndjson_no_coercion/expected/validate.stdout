@@ -1,0 +1,9 @@
+[
+  {
+    "level": "error",
+    "type": "records",
+    "file": "data/1.ndjson",
+    "line": 1,
+    "message": "validating root: validating /properties/count: type: 1 has type \"string\", want \"integer\""
+  }
+]

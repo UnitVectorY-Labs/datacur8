@@ -130,3 +130,13 @@ constraints:
     references:
       key: "$.teamId"
 ```
+
+## JSONL / NDJSON record locations
+
+Each JSONL/NDJSON object is a separate item. Type-scoped scalar uniqueness applies
+across all records, including multiple records in one file; item-scoped uniqueness
+applies within each object. Foreign keys work across formats in either direction.
+Constraint diagnostics retain the original file and one-based `line`; CSV `row`
+remains zero-based. Path selectors always come from the source filename and its
+captures. For example, two records in `data/team.ndjson` both have
+`path.file = team`, regardless of their line numbers.

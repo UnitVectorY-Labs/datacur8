@@ -430,7 +430,9 @@ team:
     name: Team Beta
 ```
 
-### JSONL export
+### JSONL / NDJSON export
+
+`jsonl` and `ndjson` are equivalent output formats.
 
 ```yaml
 output:
@@ -591,3 +593,51 @@ records = [{id = 'widget-1', owner = {team = 'platform'}, released = '2026-10-07
 ```
 
 Native dates become strings during validation/export. The aggregate is a single wrapper object, distinct from individual input records. `datacur8 tidy --write` retains native dates but removes comments and sorts keys. See [TOML conversion rules](/configuration#toml-input) for temporal precision, exact integer limits, null rejection, and formatting policy.
+
+## JSONL / NDJSON catalog
+
+Working fixture: [tests/example_examples_jsonl_ndjson_catalog_success](https://github.com/UnitVectorY-Labs/datacur8/tree/main/tests/example_examples_jsonl_ndjson_catalog_success).
+
+```yaml
+version: "0.0.0"
+types:
+  - name: records
+    input: ndjson
+    match:
+      include: ['^data/.*\.(jsonl|ndjson)$']
+    schema:
+      type: object
+      properties:
+        id: {type: string}
+        count: {type: integer}
+        active: {type: boolean}
+      required: [id]
+    constraints:
+      - type: unique
+        key: "$.id"
+    output:
+      format: jsonl
+      path: out/nested/records.jsonl
+```
+
+`data/1.ndjson` contains:
+
+```jsonl
+{"id":"b","count":2,"active":false}
+{"id":"a","count":1,"active":true}
+```
+
+`data/2.jsonl` contains:
+
+```jsonl
+{"id":"c","count":3,"active":true}
+```
+
+Run `datacur8 validate`, `datacur8 tidy --write`, then `datacur8 export`. Output
+contains three objects in file/line order (b, a, c), without an aggregate wrapper.
+Switching either format value between `jsonl` and `ndjson` produces the same
+behavior and bytes. A duplicate id on line 2 reports that file and `line: 2`
+(and the original duplicate's line). `path.file` for both records in the first
+file is `1`; it does not become their id or line number. Nested/null properties
+are supported; blank lines and non-object roots fail. See the
+[full input and conversion rules](/configuration#jsonl--ndjson-input).

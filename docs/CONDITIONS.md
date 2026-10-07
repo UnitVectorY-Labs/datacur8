@@ -24,13 +24,13 @@ Reference for validation conditions, error messages, and output formats returned
 | Configuration | `1` | Invalid `strict_mode` | Message pattern: strict_mode \"X\" is invalid; must be DISABLED, ENABLED, or FORCE. |
 | Configuration | `1` | Duplicate type name | Message pattern: types[N](name): duplicate type name \"name\". Each type name must be unique. |
 | Configuration | `1` | Invalid type name | Message pattern: types[N](name): type name must match ^[a-zA-Z][a-zA-Z0-9_]*$. Type names must start with a letter and use only letters, digits, and underscores. |
-| Configuration | `1` | Invalid input format | Message pattern: types[N](name): input \"X\" must be json, yaml, csv, hcl, or toml. |
+| Configuration | `1` | Invalid input format | Message pattern: types[N](name): input \"X\" must be json, jsonl, ndjson, yaml, csv, hcl, or toml. |
 | Configuration | `1` | Empty include patterns | Message pattern: types[N](name): match.include must have at least 1 pattern. Every type needs at least one `match.include` pattern. |
 | Configuration | `1` | Invalid regex pattern | Message pattern: types[N](name): match.include[M] invalid regex: ... or types[N](name): match.exclude[M] invalid regex: ... A `match.include` or `match.exclude` regex failed to compile. |
 | Configuration | `1` | Missing schema | Message pattern: types[N](name): schema is required. Every type must define a schema. |
 | Configuration | `1` | Invalid schema root type | Message pattern: types[N](name): schema.type must be \"object\". All datacur8 schemas must have root `type: object`. |
 | Configuration | `1` | Output path conflict | Message pattern: types[N](name): output.path \"path\" conflicts with type \"other\". Two types cannot write to the same output path. |
-| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, jsonl, hcl, csv, or toml. |
+| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, jsonl, ndjson, hcl, csv, or toml. |
 | Configuration | `1` | Invalid constraint selector | Message pattern: types[N](name).constraints[M]: key \"X\" is not a valid selector: ... Valid selectors include `$`, `$.field`, `$.a.b.c`, and `$.items[*].id`. |
 | Configuration | `1` | Unknown constraint type | Message pattern: types[N](name).constraints[M]: unknown constraint type \"X\". Supported types: `unique`, `foreign_key`, `path_equals_attr`. |
 | Configuration | `1` | Missing references for `foreign_key` | Message pattern: types[N](name).constraints[M]: references is required for foreign_key. |
@@ -84,3 +84,22 @@ All CSV conditions also apply to tab-delimited inputs configured with `csv.delim
 | Tidy check | `5` | Canonical reserialization differs; check mode never writes. |
 
 Temporal values normalize to strings before schema/constraint checks. See [TOML conversion rules](/configuration#toml-input) for offset handling, fractional precision, integer limits, and the comment/order policy.
+
+## JSONL / NDJSON conditions
+
+Both names select identical input/output behavior.
+
+| Category | Exit | Condition |
+|---|---|---|
+| Configuration | `1` | Unsupported options (including CSV options); format names are `jsonl` and `ndjson`. |
+| Input | `2` | Invalid UTF-8, BOM, blank record, malformed JSON, non-object root, comments, multiline record, multiple values on a line, or number outside float64 range. |
+| Validation | `2` | Any record fails schema, strict mode, unique, foreign-key, or path constraints. |
+| Export | `2` | Input read/parse/validation failure blocks writing outputs; malformed files contribute no partial dataset. |
+| Export | `3` | Output conversion or write failure, including values incompatible with the target format. |
+| Tidy | `4` | Read/parse/write failure; malformed records leave the affected input unchanged. |
+| Tidy check | `5` | Formatting differs; diff is emitted and source is unchanged. |
+
+Record errors include `file` and one-based `line` in JSON/YAML and `(line N)` in
+text. CSV `row` remains zero-based. Empty files are valid zero-item datasets;
+`{}` is an item subject to schema validation. All records in a file use the same
+file-derived path captures. See [input rules](/configuration#jsonl--ndjson-input).

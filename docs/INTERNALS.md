@@ -32,6 +32,7 @@ internal/
   constraints/           # Constraint evaluation engine
   discovery/             # File discovery and type matching
   export/                # Output file generation
+  jsonldata/             # Shared JSONL/NDJSON framing, line errors, canonical tidy
   tomldata/              # TOML 1.1 parsing, checked JSON conversion, export, canonical tidy
   hcldata/               # HCL parsing, JSON conversion, export, and formatting
   schema/                # JSON Schema validation with strict mode
@@ -42,14 +43,14 @@ internal/
 ### Package dependencies
 
 ```
-main → cli → config, constraints, discovery, export, hcldata, tomldata, schema, tidy
+main → cli → config, constraints, discovery, export, hcldata, jsonldata, tomldata, schema, tidy
 constraints → config, selector
 discovery → config
 export → config, hcldata, tomldata
 hcldata → (external: hashicorp/hcl/v2, zclconf/go-cty)
 schema → (external: google/jsonschema-go)
 selector → (standalone)
-tidy → hcldata, tomldata
+tidy → hcldata, jsonldata, tomldata
 tomldata → (external: pelletier/go-toml/v2)
 ```
 
@@ -95,7 +96,7 @@ Discovery pre-compiles all regex patterns for efficiency. The result is a sorted
 1. Read and parse each discovered file according to its input format
 2. For JSON and YAML: parse into a single `map[string]any`
 3. For HCL: parse attributes, evaluate without external context, and convert values through JSON into one `map[string]any`
-4. For CSV: validate headers, convert each row into a typed `map[string]any`
+4. For CSV: validate headers, convert each row into a typed `map[string]any`; for JSONL/NDJSON: parse all physical lines into ordered objects
 5. Apply strict mode overlay to the schema (if configured)
 6. Validate each item against its JSON Schema using `google/jsonschema-go`
 
@@ -110,7 +111,7 @@ CSV parsing is notable: it uses the schema to guide type conversion of cell valu
    - **unique**: Build a set of seen values; report duplicates
    - **foreign_key**: Build a lookup index of referenced type's key values; check each owning item
    - **path_equals_attr**: Compare path capture value against item attribute value
-3. Collect all errors with stable ordering (by type, then file path, then row index)
+3. Collect all errors with stable ordering (by type, constraint ID, file path, line number, then CSV row index)
 
 ## Selectors
 
@@ -186,7 +187,7 @@ Export produces deterministic output through strict ordering rules:
 - **JSON**: Items are wrapped in an object keyed by the type name, with the value being an array. Pretty-printed with 2-space indentation.
 - **YAML**: Same structure as JSON but serialized as YAML.
 - **CSV**: `config.CSVColumns` validates the export schema subset during semantic configuration validation and supplies sorted names/types to `export.marshalCSV`. The encoder checks every item for complete scalar cells and undeclared keys, formats finite numbers and signed 64-bit integers, and uses `encoding/csv` with LF records. A single empty cell is explicitly quoted to avoid the reader skipping a blank line. It flushes and checks writer errors.
-- **JSONL**: One minified JSON object per line.
+- **JSONL/NDJSON**: Equivalent output names; one minified JSON object per line, zero bytes for no records.
 - **TOML**: One type-name key containing inline-table records; keys sorted recursively, explicit empty dataset, checked representability.
 - **HCL**: One attribute named after the type containing the item array (`type_name = [{ ... }]`); object keys are sorted.
 
@@ -222,3 +223,30 @@ existing conversion, diagnostics, and ordering. Tidy validates ambiguous headers
 before sorting columns with their cells and writing. Both writers quote a single
 empty string record explicitly to preserve it on re-read. No TSV parser or format
 alias is introduced.
+
+## JSONL / NDJSON parsing and formatting
+
+`jsonldata.Parse` implements both config names without additional dependencies.
+The CLI reads each file with `os.ReadFile` and surfaces read errors. `bytes.Cut`
+frames LF-delimited records without Scanner's token-size limit, validating UTF-8,
+BOM exclusion, nonblank lines, and exactly one non-null object via `json.Unmarshal`.
+CRLF and missing final LF are accepted; an empty byte slice yields zero items.
+Parsing returns no records if any later line fails. Numbers retain JSON input's
+float64 behavior; there is no CSV-style coercion. Files occupy memory in full;
+there is no additional explicit size limit.
+
+`jsonldata.Error` carries the original one-based line and wraps the cause. Since
+blank records are rejected, successful slice index + 1 is the physical line.
+`constraints.Item.LineNumber` and `constraints.Error.LineNumber` carry this metadata
+through all unique/foreign-key/path branches and deterministic error ordering.
+Zero means no line; the independent `RowIndex` remains zero-based CSV metadata
+with -1 for other inputs. CLI `reportEntry.Line` is optional in JSON/YAML and text.
+Path captures remain shared file metadata for all records.
+
+`jsonldata.Format` validates the entire file before producing any output. A second
+JSON decode with `UseNumber` preserves exact numeric values when formatting,
+while the initial float64 decode enforces the same accepted numeric range as
+validation. Go's JSON encoder sorts keys recursively, minifies each object, and
+writes LF. Empty files stay empty. `tidyJSONL` compares full content before writing;
+parse errors cannot rewrite an earlier valid prefix. `RunTidy` extracts wrapped
+line errors for structured diagnostics. Tidy checks syntax, not schema/constraints.

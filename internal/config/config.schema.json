@@ -45,6 +45,8 @@
             "type": "string",
             "enum": [
               "json",
+              "jsonl",
+              "ndjson",
               "yaml",
               "csv",
               "hcl",
@@ -220,6 +222,7 @@
                   "json",
                   "yaml",
                   "jsonl",
+                  "ndjson",
                   "hcl",
                   "toml",
                   "csv"

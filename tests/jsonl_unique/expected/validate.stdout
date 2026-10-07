@@ -1,0 +1,16 @@
+[
+  {
+    "level": "error",
+    "type": "records",
+    "file": "data/1.ndjson",
+    "line": 1,
+    "message": "[unique] duplicate value \"a\" for key $.id"
+  },
+  {
+    "level": "error",
+    "type": "records",
+    "file": "data/1.ndjson",
+    "line": 2,
+    "message": "[unique] duplicate value \"a\" for key $.id"
+  }
+]

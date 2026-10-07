@@ -143,10 +143,48 @@ Type names must be unique across all entries in `types`. They are also used in e
 | Value | Description |
 |---|---|
 | `json` | JSON files parsed as objects. |
+| `jsonl`, `ndjson` | Equivalent names for newline-delimited JSON; one object per line. |
 | `yaml` | YAML files parsed as objects. |
 | `csv` | CSV-style delimited files parsed as rows of objects; comma by default, tab for TSV via `csv.delimiter`. |
 | `hcl` | HCL2 attribute files parsed as one object per file. |
 | `toml` | TOML 1.1.0 files parsed as one object per file. |
+
+#### JSONL / NDJSON input
+
+`input: jsonl` and `input: ndjson` select the same parser. Match either extension
+explicitly, for example `include: ['^data/.*\.(jsonl|ndjson)$']`; the config value
+does not infer filenames. These are equivalent names for newline-delimited JSON
+([JSON Lines](https://jsonlines.org/), [NDJSON](https://github.com/ndjson/ndjson-spec)).
+The following datacur8 rules apply to both names:
+
+- UTF-8 without a BOM; LF or CRLF record separators; the final newline is optional.
+- Each line contains exactly one JSON **object**. Unlike the general specifications,
+  datacur8 rejects array/scalar/null roots. `{}` is an item checked against the schema.
+- Blank or whitespace-only lines, comments, multiple values on one line, invalid
+  UTF-8, and multiline objects are errors. An escaped `\n` inside a string is content,
+  not a record separator. A zero-byte file contributes zero items.
+- Nested objects/arrays, mixed arrays, null properties, empty collections, unusual
+  keys, and Unicode are preserved. There is no schema-driven string coercion.
+- Numbers use the existing JSON input float64 model. Integers beyond ±2^53 may
+  round; decimal fractions may be approximate. Values outside float64 range fail.
+- Files retain discovery order and records retain line order. A malformed file
+  contributes no items and blocks export. Files are read entirely into memory,
+  with no additional record-size limit or Scanner 64 KiB token bound; Go's JSON
+  decoder limits nesting depth.
+
+Parse, schema, strict-mode, and constraint errors identify the file and one-based
+`line` in text/JSON/YAML reports. CSV's zero-based `row` is unchanged. Every record
+shares its source file's path captures (`path.file`, `path.parent`, `path.ext`,
+and named captures); line numbers do not create per-record filenames.
+No format-specific options, compression, or stdin input are supported.
+
+Tidy validates every record's syntax and supported numeric range before rewriting
+that file, then emits one minified object per line with recursively sorted keys,
+LF, and a final newline. Record order and empty files are preserved. Numeric values
+are serialized without float64 rounding during tidy; spelling can remain unchanged.
+Tidy is idempotent. Check mode is read-only and returns **5** with a diff for changes;
+malformed input returns **4** without rewriting the affected file. As with other
+formats, tidy does not run JSON Schema or constraints.
 
 #### TOML input
 
@@ -567,7 +605,7 @@ Semantic validation checks that `references.type` matches a defined entry in `ty
 |---|---|
 | `json` | Write a JSON array/object output (depending on export shape) |
 | `yaml` | Write YAML output |
-| `jsonl` | Write newline-delimited JSON objects |
+| `jsonl`, `ndjson` | Equivalent names: write one minified JSON object per line |
 | `csv` | Write schema-defined scalar columns as a header and one row per item |
 | `hcl` | Write an HCL attribute named after the type whose value is the exported array |
 | `toml` | Write one type-name key containing the array of records |
@@ -578,7 +616,21 @@ output:
   format: json
 ```
 
-Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as JSON, YAML, JSONL, HCL, CSV, or TOML (subject to each output format's restrictions).
+Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as JSON, YAML, JSONL/NDJSON, HCL, CSV, or TOML (subject to each output format's restrictions).
+
+#### JSONL / NDJSON export
+
+`output.format: jsonl` and `output.format: ndjson` emit identical bytes: one
+minified JSON object per line, sorted keys, LF and a final newline for nonempty
+datasets. Zero items produce a zero-byte file. There is no type-name wrapper, so
+the export can be read back directly as individual JSONL/NDJSON records. Output
+paths/extensions remain explicit and parent directories are created automatically.
+
+Either input name can export to every supported output format for compatible
+values. JSON/YAML/HCL/TOML exports wrap the records under the type name; CSV/TSV
+requires a flat scalar schema and complete representable cells. TOML rejects null
+values. See the output-specific rules below; input numbers already reflect the
+JSON float64 precision limits.
 
 #### CSV delimiters and TSV
 

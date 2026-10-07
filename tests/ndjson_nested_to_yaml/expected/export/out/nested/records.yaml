@@ -1,0 +1,13 @@
+records:
+    - id: nested
+      mixed:
+        - null
+        - true
+        - |-
+          雪
+          line
+        - {}
+        - []
+        - 1.5
+      object:
+        odd.key: null

@@ -1,0 +1,9 @@
+records = [{
+  active = false
+  count  = 2
+  id     = "b"
+  }, {
+  active = true
+  count  = 1
+  id     = "a"
+}]

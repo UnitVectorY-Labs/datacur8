@@ -1,0 +1,17 @@
+version: "0.0.0"
+types:
+  - name: records
+    input: jsonl
+    match:
+      include: ['^data/.*\.(jsonl|ndjson)$']
+    schema:
+      type: object
+      properties:
+        id: {type: string}
+        count: {type: integer}
+        active: {type: boolean}
+      required: [id]
+    output:
+      format: jsonl
+      path: out/nested/records.jsonl
+      csv: {delimiter: ","}

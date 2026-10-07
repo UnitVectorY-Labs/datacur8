@@ -1,0 +1,25 @@
+version: "0.0.0"
+types:
+  - name: records
+    input: ndjson
+    match:
+      include: ['^data/.*\.(jsonl|ndjson)$']
+    schema:
+      type: object
+      properties:
+        id: {type: string}
+        count: {type: integer}
+        active: {type: boolean}
+      required: [id]
+    constraints:
+      - type: foreign_key
+        key: "$.id"
+        references: {type: parents, key: "$.id"}
+  - name: parents
+    input: yaml
+    match: {include: ['^parents/.*\.yaml$']}
+    schema: {type: object}
+    constraints:
+      - type: foreign_key
+        key: "$.id"
+        references: {type: records, key: "$.id"}
