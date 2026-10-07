@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/bad.hcl",
+    "message": "parsing HCL: data/bad.hcl:2,1-3: Attribute redefined; The argument \"id\" was already set at data/bad.hcl:1,1-3. Each argument may be set only once."
+  }
+]

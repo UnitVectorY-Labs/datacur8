@@ -47,7 +47,8 @@
             "enum": [
               "json",
               "yaml",
-              "csv"
+              "csv",
+              "hcl"
             ]
           },
           "match": {
@@ -218,7 +219,8 @@
                 "enum": [
                   "json",
                   "yaml",
-                  "jsonl"
+                  "jsonl",
+                  "hcl"
                 ]
               }
             }

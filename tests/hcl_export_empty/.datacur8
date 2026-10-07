@@ -1,0 +1,11 @@
+version: "0.0.0"
+types:
+  - name: widget
+    input: hcl
+    match:
+      include: ["^data/.*\\.hcl$"]
+    schema:
+      type: object
+    output:
+      path: out/widgets.hcl
+      format: hcl

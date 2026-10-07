@@ -145,6 +145,28 @@ Type names must be unique across all entries in `types`. They are also used in e
 | `json` | JSON files parsed as objects. |
 | `yaml` | YAML files parsed as objects. |
 | `csv` | CSV files parsed as rows of objects (comma-delimited; no CSV format configuration). |
+| `hcl` | HCL2 attribute files parsed as one object per file. |
+
+#### HCL input
+
+Each HCL2 file represents one object. Top-level attributes become object properties, and attribute values retain their JSON-compatible types: strings, numbers, booleans, null, nested objects, and lists.
+
+```hcl
+id      = "widget-1"
+enabled = true
+metadata = {
+  owner = "team-a"
+}
+tags = ["hardware", "featured"]
+```
+
+The parsed values are converted to a JSON-compatible object before the existing JSON Schema and constraint checks run. HCL values determine their types; the schema does not coerce strings to numbers or booleans. Nested objects and lists are supported without CSV's flat-schema restriction.
+
+Expressions must evaluate without external context. Self-contained expressions such as `price = 10 + 2.5` are supported. Evaluated variables, references to other attributes, and function calls produce data-validation errors; unused conditional branches follow HCL's normal evaluation rules. HCL blocks such as `widget "widget-1" { ... }` are unsupported. Use an object-valued attribute (`metadata = { owner = "team-a" }`) for nested data. datacur8 does not run Terraform or load variables, providers, modules, or functions.
+
+HCL quoted strings use template syntax. Escape a literal `${...}` as `$${...}` and a literal `%{...}` as `%%{...}`. Exports escape these sequences automatically.
+
+Use `input: hcl` and include patterns matching the files you want to discover, typically `\.hcl$`. The `.datacur8` configuration itself remains YAML. `tidy` formats HCL while preserving comments and attribute order.
 
 ---
 
@@ -204,7 +226,7 @@ The built-in path selectors are always available:
 | Selector | Description |
 |---|---|
 | `path.file` | File name without extension |
-| `path.ext` | Normalized extension without dot (`yaml`, `json`, or `csv`) |
+| `path.ext` | Normalized extension without dot (for example `yaml`, `json`, `csv`, or `hcl`) |
 | `path.parent` | Name of the parent folder |
 
 {: .highlight }
@@ -524,6 +546,7 @@ Semantic validation checks that `references.type` matches a defined entry in `ty
 | `json` | Write a JSON array/object output (depending on export shape) |
 | `yaml` | Write YAML output |
 | `jsonl` | Write newline-delimited JSON objects |
+| `hcl` | Write an HCL attribute named after the type whose value is the exported array |
 
 ```yaml
 output:
@@ -531,4 +554,8 @@ output:
   format: json
 ```
 
-Export creates parent directories as needed.
+Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as HCL, and HCL input can be exported as JSON, YAML, or JSONL.
+
+HCL exports use the same aggregate shape as JSON and YAML, expressed as `type_name = [{ ... }]`. An empty dataset exports as `type_name = []`. Object keys are sorted for deterministic output. An aggregate export is a single object containing an array, so it is not the same shape as the individual input items.
+
+HCL uses Unicode NFC normalization for strings. Exporting strings from JSON or YAML can therefore change their Unicode encoding while preserving their text. Object keys must already be NFC-normalized for HCL export; unsupported keys produce an export error.

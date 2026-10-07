@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "service",
+    "file": "services/svc1.hcl",
+    "message": "[foreign_key] foreign key \"missing-team\" not found in team.$.id"
+  }
+]

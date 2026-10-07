@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/bad.hcl",
+    "message": "parsing HCL: data/bad.hcl:1,6-18: Function calls not allowed; Functions may not be called here."
+  }
+]

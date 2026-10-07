@@ -1,0 +1,28 @@
+version: "0.0.0"
+types:
+  - name: widgets
+    input: hcl
+    match:
+      include: ['^data/.*\.hcl$']
+    schema:
+      type: object
+      required: [id, enabled, price, tags, metadata]
+      properties:
+        id: {type: string}
+        enabled: {type: boolean}
+        price: {type: number, minimum: 0}
+        tags:
+          type: array
+          items: {type: string}
+        metadata:
+          type: object
+          required: [owner]
+          properties:
+            owner: {type: string}
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: "$.id"
+    output:
+      path: out/widgets.hcl
+      format: hcl

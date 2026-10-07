@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/bad.hcl",
+    "message": "parsing HCL: data/bad.hcl:2,1-1: Missing expression; Expected the start of an expression, but found the end of the file."
+  }
+]

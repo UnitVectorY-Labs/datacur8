@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 
+	"github.com/UnitVectorY-Labs/datacur8/internal/hcldata"
 	"gopkg.in/yaml.v3"
 )
 
@@ -20,7 +21,7 @@ type TidyResult struct {
 }
 
 // TidyFile tidies a single file.
-// input is the file format: "json", "yaml", "csv"
+// input is the file format: "json", "yaml", "csv", "hcl"
 // dryRun: if true, don't write changes, just report if they would change
 func TidyFile(path string, input string, dryRun bool) (TidyResult, error) {
 	switch input {
@@ -28,6 +29,8 @@ func TidyFile(path string, input string, dryRun bool) (TidyResult, error) {
 		return tidyJSON(path, dryRun)
 	case "yaml":
 		return tidyYAML(path, dryRun)
+	case "hcl":
+		return tidyHCL(path, dryRun)
 	case "csv":
 		return tidyCSV(path, dryRun)
 	default:
@@ -210,4 +213,22 @@ func sortKeys(data any) any {
 	default:
 		return data
 	}
+}
+
+func tidyHCL(path string, dryRun bool) (TidyResult, error) {
+	original, err := os.ReadFile(path)
+	if err != nil {
+		return TidyResult{Path: path}, fmt.Errorf("reading file: %w", err)
+	}
+	tidied, err := hcldata.Format(original, path)
+	if err != nil {
+		return TidyResult{Path: path}, fmt.Errorf("parsing HCL: %w", err)
+	}
+	changed := !bytes.Equal(original, tidied)
+	if changed && !dryRun {
+		if err := os.WriteFile(path, tidied, 0o644); err != nil {
+			return TidyResult{Path: path}, fmt.Errorf("writing file: %w", err)
+		}
+	}
+	return TidyResult{Path: path, Changed: changed, Original: original, Tidied: tidied}, nil
 }

@@ -86,6 +86,9 @@ Output formats:
 | `json` | JSON object with one key (the type name) whose value is the exported array |
 | `yaml` | YAML object with one key (the type name) whose value is the exported array |
 | `jsonl` | One minified JSON object per line |
+| `hcl` | HCL attribute named after the type whose value is the exported array (`widgets = [{ ... }]`) |
+
+Input and export formats are configured independently in `.datacur8`; `--format` controls diagnostics only. HCL input uses one attribute-based object per file and is validated against the same JSON Schema as the other input formats. See [Configuration](/configuration#hcl-input) for supported HCL expressions.
 
 The ordering of items within the output file is intended to be deterministic based on file path to minimize differences between sequential runs.
 
@@ -114,6 +117,7 @@ datacur8 tidy [--write] [--format text|json|yaml]
 - **JSON**: pretty-printed with sorted keys
 - **YAML**: stable formatting with sorted keys; comments are removed
 - **CSV**: sorted columns (alphabetical)
+- **HCL**: canonical HCL formatting; comments and attribute order are preserved
 
 Tidy does not change parsed data values. If the global `tidy.enabled` is set to `false`, tidy exits immediately.
 

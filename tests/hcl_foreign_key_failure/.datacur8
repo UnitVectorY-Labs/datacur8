@@ -1,0 +1,35 @@
+version: "0.0.0"
+types:
+  - name: team
+    input: json
+    match:
+      include: ['^teams/.*\.json$']
+    schema:
+      type: object
+      required: [id]
+      properties:
+        id: {type: string}
+  - name: service
+    input: hcl
+    match:
+      include: ['^services/.*\.hcl$']
+    schema:
+      type: object
+      required: [id, owner]
+      properties:
+        id: {type: string}
+        owner:
+          type: object
+          required: [teamId]
+          properties:
+            teamId: {type: string}
+    constraints:
+      - type: foreign_key
+        key: "$.owner.teamId"
+        references:
+          type: team
+          key: "$.id"
+      - type: path_equals_attr
+        path_selector: path.file
+        references:
+          key: "$.id"

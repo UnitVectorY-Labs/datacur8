@@ -1,0 +1,28 @@
+{
+  "widget": [
+    {
+      "enabled": true,
+      "id": "widget-1",
+      "metadata": {
+        "note": null,
+        "owner": "team-a"
+      },
+      "name": "First widget",
+      "price": 12.5,
+      "tags": [
+        "new",
+        "sale"
+      ]
+    },
+    {
+      "enabled": false,
+      "id": "widget-2",
+      "metadata": {
+        "owner": "team-b"
+      },
+      "name": "Second widget",
+      "price": 20,
+      "tags": []
+    }
+  ]
+}

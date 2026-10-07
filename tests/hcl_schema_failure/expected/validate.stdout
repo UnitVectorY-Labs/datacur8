@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "type": "widget",
+    "file": "data/bad.hcl",
+    "message": "validating root: validating /properties/id: type: 42 has type \"integer\", want \"string\""
+  }
+]

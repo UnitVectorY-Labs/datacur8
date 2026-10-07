@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/bad.hcl",
+    "message": "parsing HCL: data/bad.hcl:1,6-9: Variables not allowed; Variables may not be used here."
+  }
+]

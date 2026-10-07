@@ -1,0 +1,12 @@
+version: "0.0.0"
+types:
+  - name: widget
+    input: hcl
+    match:
+      include: ["^data/.*\\.hcl$"]
+    schema:
+      type: object
+      required: [id]
+      properties:
+        id: {type: string}
+      additionalProperties: false

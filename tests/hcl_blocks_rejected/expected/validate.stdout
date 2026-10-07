@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/bad.hcl",
+    "message": "parsing HCL: data/bad.hcl:1,1-7: HCL blocks are not supported; use attributes with object or list values instead"
+  }
+]
