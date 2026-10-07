@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/items.tsv",
+    "message": "parsing CSV: parse error on line 2, column 28: extraneous or missing \" in quoted-field"
+  }
+]

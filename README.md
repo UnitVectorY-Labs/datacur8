@@ -2,7 +2,7 @@
 
 # datacur8
 
-A config-driven CLI that validates and enforces cross-file integrity for structured JSON, YAML, CSV, and HCL datasets in a repo, then can export compiled outputs and deterministically tidy files for stable diffs.
+A config-driven CLI that validates and enforces cross-file integrity for structured JSON, YAML, CSV/TSV, and HCL datasets in a repo, then can export compiled outputs and deterministically tidy files for stable diffs.
 
 ![datacur8 diagram](docs/overview.excalidraw.svg)
 

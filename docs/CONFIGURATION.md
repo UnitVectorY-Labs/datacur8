@@ -144,7 +144,7 @@ Type names must be unique across all entries in `types`. They are also used in e
 |---|---|
 | `json` | JSON files parsed as objects. |
 | `yaml` | YAML files parsed as objects. |
-| `csv` | CSV files parsed as rows of objects (comma-delimited; no CSV format configuration). |
+| `csv` | CSV-style delimited files parsed as rows of objects; comma by default, tab for TSV via `csv.delimiter`. |
 | `hcl` | HCL2 attribute files parsed as one object per file. |
 
 #### HCL input
@@ -226,7 +226,7 @@ The built-in path selectors are always available:
 | Selector | Description |
 |---|---|
 | `path.file` | File name without extension |
-| `path.ext` | Normalized extension without dot (for example `yaml`, `json`, `csv`, or `hcl`) |
+| `path.ext` | Normalized extension without dot (for example `yaml`, `json`, `csv`, `tsv`, or `hcl`) |
 | `path.parent` | Name of the parent folder |
 
 {: .highlight }
@@ -557,6 +557,62 @@ output:
 
 Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as JSON, YAML, JSONL, HCL, or CSV (subject to CSV's schema and value restrictions).
 
+#### CSV delimiters and TSV
+
+Keep `input: csv` and `output.format: csv` for tab-delimited data. Set
+`types[].csv.delimiter` for input and tidy, and
+`types[].output.csv.delimiter` for export. Each defaults independently to comma,
+including an omitted `delimiter` inside `csv: {}`. CSV options on other formats
+are configuration errors (exit **1**). There are no `tsv` format aliases.
+
+Copyable YAML (the double-quoted `"\t"` decodes to one actual tab):
+
+```yaml
+version: "0.0.0"
+types:
+  - name: items
+    input: csv
+    csv:
+      delimiter: "\t"
+    match:
+      include: ['^data/.*\.tsv$']
+    schema:
+      type: object
+      properties:
+        id: {type: integer}
+        title: {type: string}
+      required: [id, title]
+    output:
+      path: out/items.csv
+      format: csv
+```
+
+This reads TSV and exports comma CSV. To export TSV instead, add
+`csv: {delimiter: "\t"}` inside `output`; omit the input option to convert
+comma CSV to TSV. Filename extensions never select syntax: discover `.tsv`
+files with an explicit regex. `path.ext` remains `tsv`.
+
+Delimiters may be any single Unicode rune permitted by Go CSV, including comma,
+tab, semicolon, and non-ASCII characters such as `界`. Empty strings, multiple
+runes, quote, CR, LF, NUL, and the Unicode replacement character are invalid.
+Single-quoted YAML `'\t'` means two characters and is invalid.
+
+TSV uses CSV quoting: fields containing the separator, quotes, or newlines are
+quoted, and quotes are doubled. It is not raw tab splitting. Whitespace and
+empty strings are preserved; empty numeric/boolean cells fail conversion.
+Input headers must be nonempty, unique, present in schema properties, and
+include every required property. Unknown columns are rejected regardless of
+strict mode. Logical data rows retain zero-based `row` diagnostics, even with
+multiline cells. Existing schema conversion, constraints, strict mode, record
+ordering, and CRLF normalization apply unchanged.
+
+TSV export uses exactly the flat-schema, scalar, precision, empty-dataset,
+and unsupported-value rules below, with the selected separator and LF record
+endings. Tidy sorts headers and their cells together, preserves row order and
+the input delimiter, and retains a single empty string cell as `""`.
+Check mode does not write; repeated writes are idempotent. Malformed records
+and ambiguous headers fail tidy before rewriting the file.
+
 #### CSV export
 
 Set `output.format: csv` and an output path such as `out/products.csv`. CSV output has no type-name wrapper: one header and one row per item, in discovery/file order and then CSV source row order. Columns come from **all declared `schema.properties`**, sorted alphabetically, including optional properties. A dataset with zero items still writes the header and a final newline.
@@ -565,7 +621,7 @@ The supported schema subset is an object with a nonempty `properties` map. Each 
 
 Every item must provide a non-null scalar value for every declared column, including optional properties. Missing cells, explicit nulls, structured values, and actual undeclared keys cannot be silently omitted, flattened, or stringified. Export conversion errors include the zero-based item index and property name and return exit **3**. Source values violating the JSON Schema return exit **2** first; choosing CSV output does not add value-level checks to `validate`.
 
-Strings, including empty strings, Unicode, whitespace, and formula-like strings, are preserved without spreadsheet sanitization. Go's CSV writer handles commas, quotes, and embedded LF/CR characters; record endings are LF, with a final newline. A single empty string cell is explicitly quoted (`""`) so the CSV reader does not skip it as a blank line. Booleans use `true`/`false`. Integers use decimal notation without a decimal suffix and must fit signed 64-bit range; floating-point integer values are checked before conversion. Finite numbers use enough digits to preserve their existing internal value. Precision already lost by a source parser is not recovered (JSON, HCL, and CSV numeric inputs use float64). YAML native integers retain their integer precision on export.
+Strings, including empty strings, Unicode, whitespace, and formula-like strings, are preserved without spreadsheet sanitization. Go's CSV writer handles the configured separator, quotes, and embedded LF/CR characters; record endings are LF, with a final newline. A single empty string cell is explicitly quoted (`""`) so the CSV reader does not skip it as a blank line. Booleans use `true`/`false`. Integers use decimal notation without a decimal suffix and must fit signed 64-bit range; floating-point integer values are checked before conversion. Finite numbers use enough digits to preserve their existing internal value. Precision already lost by a source parser is not recovered (JSON, HCL, and CSV numeric inputs use float64). YAML native integers retain their integer precision on export.
 
 Complete scalar records can be exported and read back using `input: csv` with the same schema. The current CSV reader converts integers to float64, so exact native YAML integer precision beyond float64's exact range is not guaranteed on re-import. Go's CSV reader also normalizes embedded CRLF to LF; the exporter itself preserves the original string bytes. Sparse and nullable exports need a future explicit encoding contract. Serialization completes before opening the destination, so conversion failure leaves an existing file untouched. Separate type outputs are not one transaction.
 

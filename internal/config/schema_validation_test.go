@@ -55,7 +55,7 @@ types: []
 	}
 }
 
-func TestLoad_ConfigSchemaRejectsCSVConfigProperty(t *testing.T) {
+func TestLoad_ConfigSchemaRejectsUnknownCSVConfigProperty(t *testing.T) {
 	cfgText := `
 version: "0.0.0"
 types:
@@ -65,7 +65,7 @@ types:
       include: ["^data/records\\.csv$"]
     schema:
       type: object
-    csv: {}
+    csv: {unknown: true}
 `
 
 	path := writeTempConfig(t, cfgText)

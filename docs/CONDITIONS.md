@@ -41,6 +41,8 @@ Reference for validation conditions, error messages, and output formats returned
 | Discovery | `1` | Subdirectory config file found | Message pattern: found .datacur8 in subdirectory \"dir\"; only root .datacur8 is allowed. datacur8 supports a single `.datacur8` at the repository root only. |
 | Data Validation | `2` | JSON/YAML parse failure | Message starts with: parsing JSON: ... or parsing YAML: ... File content is not valid JSON or YAML. |
 | Data Validation | `2` | HCL parse or evaluation failure | Message starts with: parsing HCL: ... Invalid HCL syntax, blocks, variables, attribute references, and function calls are rejected. HCL values must evaluate to JSON-compatible data without external context. |
+| Configuration | `1` | Invalid CSV options | Delimiter must be one permitted Unicode rune; CSV options require CSV input/output. Embedded-schema validation also rejects wrong types, unknown options, and invalid delimiters. |
+| Data Validation | `2` | Ambiguous CSV header | `CSV header must not be empty` or `duplicate CSV header "X"`. Tidy rejects these with exit 4 without rewriting the file. |
 | Data Validation | `2` | CSV parse failure | Message starts with: parsing CSV: ... File content is not valid CSV. |
 | Data Validation | `2` | CSV header not in schema | Message pattern: CSV header \"X\" not found in schema properties. Every CSV header must exist in schema `properties`. |
 | Data Validation | `2` | CSV missing required property | Message pattern: required property \"X\" missing from CSV headers. Every property in `schema.required` must appear in the CSV header row. |
@@ -66,3 +68,5 @@ Reference for validation conditions, error messages, and output formats returned
 | Constraint Reference | N/A | `path_equals_attr.case_sensitive` | Optional boolean. Default is `true`. Controls string comparison mode. |
 | Constraint Reference | N/A | `path_equals_attr.id` | Optional string identifier. |
 | Constraint Reference | N/A | `path_equals_attr` example | Example shape: `match.include` uses a named capture (for example `team`), then the constraint sets `path_selector` to `path.team` and compares against `references.key` such as `$.teamId`. |
+
+All CSV conditions also apply to tab-delimited inputs configured with `csv.delimiter: "\t"`. Structured `row` values count logical data rows from zero, not physical lines. Delimiter selection does not change exit codes or validation gating.

@@ -119,7 +119,7 @@ datacur8 tidy [--write] [--format text|json|yaml]
 - `--write` applies the tidy changes in place and exits non-zero only on parse/write errors
 - **JSON**: pretty-printed with sorted keys
 - **YAML**: stable formatting with sorted keys; comments are removed
-- **CSV**: sorted columns (alphabetical)
+- **CSV/TSV**: sorted columns (alphabetical), with cells reordered together and the configured input delimiter preserved
 - **HCL**: canonical HCL formatting; comments and attribute order are preserved
 
 Tidy does not change parsed data values. If the global `tidy.enabled` is set to `false`, tidy exits immediately.
@@ -184,3 +184,12 @@ error: [type_name] file/path.yaml message describing the problem
 ```
 
 For CSV files, a `row` field is included in structured output to identify the specific row.
+
+CSV and TSV share `input: csv` and `output.format: csv`. Input/tidy use
+`types[].csv.delimiter`; export uses `types[].output.csv.delimiter`.
+Both default independently to comma. Use YAML `delimiter: "\t"` for tab.
+See [CSV delimiters and TSV](/configuration#csv-delimiters-and-tsv).
+CLI `--format` still selects diagnostics only (`text|json|yaml`).
+Invalid delimiter/options return exit 1; TSV data failures return exit 2 and
+block export; export encoding/write failures return exit 3. Tidy parse/header
+failures return exit 4 without rewriting that file.

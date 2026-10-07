@@ -1,0 +1,2 @@
+# A trailing tab in TSV represents an empty final cell, not stray whitespace.
+*.tsv whitespace=-blank-at-eol

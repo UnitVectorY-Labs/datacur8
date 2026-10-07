@@ -59,7 +59,7 @@ func Export(items map[string][]any, typeDefs []config.TypeDef, rootDir string) (
 		case "hcl":
 			content, err = hcldata.Marshal(td.Name, data)
 		case "csv":
-			content, err = marshalCSV(td.Schema, data)
+			content, err = marshalCSV(td.Schema, data, td.Output.CSV)
 		case "jsonl":
 			content, err = marshalJSONL(data)
 		default:

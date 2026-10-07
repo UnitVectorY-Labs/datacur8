@@ -1,0 +1,4 @@
+id = 3
+title = " =SUM(A1) "
+ratio = 2.5
+active = true

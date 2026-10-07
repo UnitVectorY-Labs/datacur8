@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/items.tsv",
+    "message": "CSV file is empty (no header row)"
+  }
+]

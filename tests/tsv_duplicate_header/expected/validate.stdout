@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/items.tsv",
+    "message": "duplicate CSV header \"title\""
+  }
+]

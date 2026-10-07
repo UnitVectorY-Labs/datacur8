@@ -17,6 +17,7 @@ type Config struct {
 type TypeDef struct {
 	Name        string          `yaml:"name"`
 	Input       string          `yaml:"input"`
+	CSV         *CSVOptions     `yaml:"csv,omitempty"`
 	Match       MatchDef        `yaml:"match"`
 	Schema      map[string]any  `yaml:"schema"`
 	Constraints []ConstraintDef `yaml:"constraints,omitempty"`
@@ -29,8 +30,9 @@ type MatchDef struct {
 }
 
 type OutputDef struct {
-	Path   string `yaml:"path"`
-	Format string `yaml:"format"`
+	Path   string      `yaml:"path"`
+	Format string      `yaml:"format"`
+	CSV    *CSVOptions `yaml:"csv,omitempty"`
 }
 
 type ConstraintDef struct {

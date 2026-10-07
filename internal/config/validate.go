@@ -76,6 +76,8 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 			errs = append(errs, fmt.Errorf("%s: input %q must be json, yaml, csv, or hcl", prefix, t.Input))
 		}
 
+		errs = append(errs, validateCSVOptions(prefix, t.Input, t.CSV)...)
+
 		// match.include
 		if len(t.Match.Include) == 0 {
 			errs = append(errs, fmt.Errorf("%s: match.include must have at least 1 pattern", prefix))
@@ -100,6 +102,7 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 
 		// output
 		if t.Output != nil {
+			errs = append(errs, validateCSVOptions(prefix+".output", t.Output.Format, t.Output.CSV)...)
 			switch t.Output.Format {
 			case "json", "yaml", "jsonl", "hcl", "csv":
 			default:

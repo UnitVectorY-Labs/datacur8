@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/items.tsv",
+    "message": "parsing CSV: record on line 2: wrong number of fields"
+  }
+]

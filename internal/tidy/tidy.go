@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 
+	"github.com/UnitVectorY-Labs/datacur8/internal/config"
 	"github.com/UnitVectorY-Labs/datacur8/internal/hcldata"
 	"gopkg.in/yaml.v3"
 )
@@ -23,7 +24,8 @@ type TidyResult struct {
 // TidyFile tidies a single file.
 // input is the file format: "json", "yaml", "csv", "hcl"
 // dryRun: if true, don't write changes, just report if they would change
-func TidyFile(path string, input string, dryRun bool) (TidyResult, error) {
+// options supplies the CSV input delimiter; omission defaults to comma.
+func TidyFile(path string, input string, dryRun bool, options ...*config.CSVOptions) (TidyResult, error) {
 	switch input {
 	case "json":
 		return tidyJSON(path, dryRun)
@@ -32,7 +34,11 @@ func TidyFile(path string, input string, dryRun bool) (TidyResult, error) {
 	case "hcl":
 		return tidyHCL(path, dryRun)
 	case "csv":
-		return tidyCSV(path, dryRun)
+		var option *config.CSVOptions
+		if len(options) > 0 {
+			option = options[0]
+		}
+		return tidyCSV(path, dryRun, option)
 	default:
 		return TidyResult{Path: path}, fmt.Errorf("unsupported input format: %s", input)
 	}
@@ -134,13 +140,14 @@ func normalizeYAML(v any) any {
 	}
 }
 
-func tidyCSV(path string, dryRun bool) (TidyResult, error) {
+func tidyCSV(path string, dryRun bool, options *config.CSVOptions) (TidyResult, error) {
 	original, err := os.ReadFile(path)
 	if err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("reading file: %w", err)
 	}
 
 	reader := csv.NewReader(bytes.NewReader(original))
+	reader.Comma = options.Rune()
 	records, err := reader.ReadAll()
 	if err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("parsing CSV: %w", err)
@@ -151,6 +158,9 @@ func tidyCSV(path string, dryRun bool) (TidyResult, error) {
 	}
 
 	headers := records[0]
+	if err := config.CSVHeaders(headers); err != nil {
+		return TidyResult{Path: path}, err
+	}
 
 	// Build sorted column index
 	type colInfo struct {
@@ -179,10 +189,24 @@ func tidyCSV(path string, dryRun bool) (TidyResult, error) {
 
 	buf := &bytes.Buffer{}
 	writer := csv.NewWriter(buf)
-	if err := writer.WriteAll(sorted); err != nil {
-		return TidyResult{Path: path}, fmt.Errorf("writing CSV: %w", err)
+	writer.Comma = options.Rune()
+	for _, row := range sorted {
+		// A blank record would be skipped on re-read. Preserve one empty cell,
+		// matching CSV export's encoding.
+		if len(row) == 1 && row[0] == "" {
+			writer.Flush()
+			if err := writer.Error(); err != nil {
+				return TidyResult{Path: path}, fmt.Errorf("writing CSV: %w", err)
+			}
+			buf.WriteString("\"\"\n")
+		} else if err := writer.Write(row); err != nil {
+			return TidyResult{Path: path}, fmt.Errorf("writing CSV: %w", err)
+		}
 	}
 	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return TidyResult{Path: path}, fmt.Errorf("writing CSV: %w", err)
+	}
 	tidied := buf.Bytes()
 
 	changed := !bytes.Equal(original, tidied)

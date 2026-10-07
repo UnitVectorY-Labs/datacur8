@@ -1,0 +1,9 @@
+[
+  {
+    "level": "error",
+    "type": "items",
+    "file": "data/items.tsv",
+    "row": 1,
+    "message": "validating root: validating /properties/id: maximum: 2 is greater than 1.000000"
+  }
+]

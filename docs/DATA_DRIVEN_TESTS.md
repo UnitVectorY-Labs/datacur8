@@ -163,3 +163,25 @@ Before committing a new fixture:
 `example_examples_csv_export_success` covers the documented JSON-to-CSV example. `csv_export_from_formats` uses equivalent JSON/YAML/CSV/HCL records across multiple files and byte-identical snapshots, including optional-column ordering, Unicode, quoting, embedded LF/CR, empty strings, booleans, and numeric precision. `csv_export_empty` requires a header even without input items. `csv_export_numeric_boundaries` covers signed 64-bit YAML integers and finite float64 extremes. `invalid_csv_export_schema_*` and `invalid_csv_export_option` exercise configuration rejection.
 
 The fixture contract is unchanged. Focused CLI tests in `tests/csv_export_test.go` create temporary repositories for exit 3 conversion/write failures and assert existing destinations remain untouched. They also verify validation gating, repeat-export byte equality, and export→CSV-input→export with the same schema. Exporter unit tests cover explicit null/structured cells and numeric boundaries that source schema validation may reject before conversion. A successful validate fixture with configured outputs still requires every export snapshot.
+
+## Configurable delimiters and TSV coverage
+
+`example_examples_tsv_catalog_success` backs the TSV example and checks quoted
+tabs/newlines/quotes, scalar conversion, empty strings, explicit extension
+matching, constraints, TSV→CSV, and tidy snapshots. `tsv_export_from_formats`
+checks JSON/YAML/HCL/comma CSV→TSV with byte snapshots; `tsv_export_empty` covers
+header-only output. `csv_unicode_delimiter` checks a non-ASCII separator.
+`tsv_single_empty_cell` preserves a quoted empty record through tidy/export.
+
+`invalid_csv_delimiter_*` and `invalid_csv_options_*` cover embedded-schema
+rejection; config unit tests independently check semantic validation.
+`tsv_*` failures cover headers, syntax, width, conversion/schema logical row
+indices, uniqueness, path matching, and cross-format foreign keys.
+`tsv_strict_*` preserve successful processing under both strict overlays.
+Focused tests in `tests/tsv_test.go` check repeated export/tidy, post-tidy value
+alignment, validation-gated exports, and unchanged malformed inputs/destinations.
+The existing fixture contract and completeness checks are unchanged.
+
+TSV snapshots can end a record with a tab to represent an empty final cell.
+The `*.tsv` rule in `.gitattributes` disables end-of-line whitespace warnings
+for that data syntax; preserve these tabs when editing snapshots.
