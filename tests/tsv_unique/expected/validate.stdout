@@ -1,0 +1,16 @@
+[
+  {
+    "level": "error",
+    "type": "items",
+    "file": "data/items.tsv",
+    "row": 0,
+    "message": "[unique] duplicate value \"1\" for key $.id"
+  },
+  {
+    "level": "error",
+    "type": "items",
+    "file": "data/items.tsv",
+    "row": 1,
+    "message": "[unique] duplicate value \"1\" for key $.id"
+  }
+]

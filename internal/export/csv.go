@@ -12,13 +12,16 @@ import (
 	"github.com/UnitVectorY-Labs/datacur8/internal/config"
 )
 
-func marshalCSV(schema map[string]any, data []any) ([]byte, error) {
+func marshalCSV(schema map[string]any, data []any, options ...*config.CSVOptions) ([]byte, error) {
 	columns, err := config.CSVColumns(schema)
 	if err != nil {
 		return nil, err
 	}
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf) // LF records; preserve CR within quoted strings.
+	if len(options) > 0 {
+		writer.Comma = options[0].Rune()
+	}
 	headers := make([]string, len(columns))
 	declared := make(map[string]bool, len(columns))
 	for i, col := range columns {

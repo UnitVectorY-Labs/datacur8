@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "file": "data/items.tsv",
+    "row": 0,
+    "message": "row 0, column \"active\": empty value for boolean type"
+  }
+]

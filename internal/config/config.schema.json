@@ -22,7 +22,6 @@
       ],
       "default": "DISABLED"
     },
-
     "types": {
       "type": "array",
       "minItems": 0,
@@ -223,10 +222,48 @@
                   "hcl",
                   "csv"
                 ]
+              },
+              "csv": {
+                "$ref": "#/$defs/csvOptions"
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "required": [
+                    "csv"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "format": {
+                      "const": "csv"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "csv": {
+            "$ref": "#/$defs/csvOptions"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "csv"
+              ]
+            },
+            "then": {
+              "properties": {
+                "input": {
+                  "const": "csv"
+                }
               }
             }
           }
-        }
+        ]
       }
     },
     "tidy": {
@@ -244,6 +281,18 @@
     "keyRef": {
       "type": "string",
       "minLength": 1
+    },
+    "csvOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "delimiter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "pattern": "^[^\"\r\n\u0000\ufffd]$"
+        }
+      }
     }
   }
 }

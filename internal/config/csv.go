@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"sort"
+	"unicode/utf8"
 )
 
 // CSVColumn describes a scalar column declared directly in schema.properties.
@@ -54,6 +55,53 @@ func csvSchemaKeywords(schema map[string]any) error {
 		if _, exists := schema[keyword]; exists {
 			return fmt.Errorf("CSV export does not support schema keyword %q", keyword)
 		}
+	}
+	return nil
+}
+
+// CSVOptions applies independently to input/tidy and export.
+// A pointer distinguishes an omitted delimiter (comma) from an invalid empty one.
+type CSVOptions struct {
+	Delimiter *string `yaml:"delimiter,omitempty"`
+}
+
+// Rune returns the configured separator, defaulting to comma.
+func (o *CSVOptions) Rune() rune {
+	if o == nil || o.Delimiter == nil {
+		return ','
+	}
+	r, _ := utf8.DecodeRuneInString(*o.Delimiter)
+	return r
+}
+
+func validateCSVOptions(prefix, format string, o *CSVOptions) []error {
+	if o == nil {
+		return nil
+	}
+	if format != "csv" {
+		return []error{fmt.Errorf("%s: csv options require csv format", prefix)}
+	}
+	if o.Delimiter != nil {
+		s := *o.Delimiter
+		r := o.Rune()
+		if !utf8.ValidString(s) || utf8.RuneCountInString(s) != 1 || r == 0 || r == '"' || r == '\r' || r == '\n' || r == utf8.RuneError {
+			return []error{fmt.Errorf("%s.csv.delimiter must be one permitted Unicode rune (not quote, CR, LF, NUL, or replacement character)", prefix)}
+		}
+	}
+	return nil
+}
+
+// CSVHeaders rejects ambiguous columns before validation or tidy can lose data.
+func CSVHeaders(headers []string) error {
+	seen := make(map[string]bool, len(headers))
+	for _, h := range headers {
+		if h == "" {
+			return fmt.Errorf("CSV header must not be empty")
+		}
+		if seen[h] {
+			return fmt.Errorf("duplicate CSV header %q", h)
+		}
+		seen[h] = true
 	}
 	return nil
 }

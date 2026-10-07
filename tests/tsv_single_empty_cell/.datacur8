@@ -1,0 +1,13 @@
+version: "0.0.0"
+types:
+  - name: values
+    input: csv
+    csv: {delimiter: "\t"}
+    match: {include: ['^data/.*\.tsv$']}
+    schema:
+      type: object
+      properties: {value: {type: string}}
+    output:
+      path: out/values.tsv
+      format: csv
+      csv: {delimiter: "\t"}

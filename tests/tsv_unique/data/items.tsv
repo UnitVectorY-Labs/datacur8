@@ -1,0 +1,4 @@
+title	id	active	ratio	ext
+"  a	b
+""quoted""  "	1	true	1.25	tsv
+x	1	false	0	tsv

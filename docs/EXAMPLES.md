@@ -489,3 +489,53 @@ Widget,12.5,3
 Columns are alphabetically sorted from the schema rather than the first item. JSON, YAML, HCL, and CSV inputs can all produce this shape. To read it back, use `input: csv` with the same schema and a match pattern for the exported CSV, and select a different output path (configured outputs are excluded from discovery).
 
 Every declared column must be present in every item. Empty strings are valid; absent/null cells, extra undeclared keys, and structured values cannot be represented. Unsupported schemas fail with exit 1, source validation errors with exit 2, and export conversion/write errors with exit 3. See [CSV export](/configuration#csv-export) for the supported subset, precision, and round-trip limits.
+
+## TSV catalog with CSV export
+
+The working fixture is [`tests/example_examples_tsv_catalog_success`](https://github.com/UnitVectorY-Labs/datacur8/tree/main/tests/example_examples_tsv_catalog_success).
+It covers integers, numbers, booleans, empty strings, quoted tabs/newlines and
+quotes, uniqueness, and extension matching.
+
+```yaml
+version: "0.0.0"
+types:
+  - name: items
+    input: csv
+    csv: {delimiter: "\t"}
+    match:
+      include: ['^data/.*\.tsv$']
+    schema:
+      type: object
+      properties:
+        title: {type: string}
+        id: {type: integer}
+        active: {type: boolean}
+        ratio: {type: number}
+        ext: {type: string}
+      required: [title, id, active, ratio, ext]
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: $.id
+      - type: path_equals_attr
+        path_selector: path.ext
+        references: {key: $.ext}
+    output:
+      path: out/items.csv
+      format: csv
+```
+
+Place CSV-style tab-delimited records in `data/items.tsv`. For example, this
+table shows the columns and scalar values (use actual tabs between fields):
+
+| title | id | active | ratio | ext |
+| --- | --- | --- | --- | --- |
+| Example | 1 | true | 1.25 | tsv |
+
+Run `datacur8 validate`, `datacur8 export`, and `datacur8 tidy --write`.
+Export writes comma-delimited `out/items.csv` with alphabetically sorted
+columns. Tidy keeps the input tab-delimited and aligns cells with the sorted
+headers. Add `csv: {delimiter: "\t"}` under `output` for TSV export instead.
+The input/output delimiters default independently to comma.
+See [CSV delimiters and TSV](/configuration#csv-delimiters-and-tsv) for quoting,
+permitted separators, empty data, conversion limits, and errors.

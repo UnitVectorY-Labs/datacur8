@@ -1,0 +1,7 @@
+[
+  {
+    "level": "error",
+    "file": "data/items.tsv",
+    "message": "CSV header \"other\" not found in schema properties"
+  }
+]

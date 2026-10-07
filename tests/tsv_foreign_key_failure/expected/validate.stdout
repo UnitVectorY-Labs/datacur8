@@ -1,0 +1,9 @@
+[
+  {
+    "level": "error",
+    "type": "items",
+    "file": "data/items.tsv",
+    "row": 1,
+    "message": "[foreign_key] foreign key \"2\" not found in owner.$.id"
+  }
+]

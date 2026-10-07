@@ -97,7 +97,7 @@ Discovery pre-compiles all regex patterns for efficiency. The result is a sorted
 5. Apply strict mode overlay to the schema (if configured)
 6. Validate each item against its JSON Schema using `google/jsonschema-go`
 
-CSV parsing is notable: it uses the schema to guide type conversion of cell values (string → boolean, number, integer), and validates headers against schema properties and required fields.
+CSV parsing is notable: it uses the schema to guide type conversion of cell values (string → boolean, number, integer), and rejects duplicate/empty headers through `config.CSVHeaders` and validates headers against schema properties and required fields.
 
 ### Phase 4: Constraint Evaluation
 
@@ -146,7 +146,7 @@ CSV files are handled specially because they don't have native types — every c
 
 ### Parsing flow
 
-1. **Read** the entire CSV file using a comma delimiter
+1. **Read** the entire CSV file using `TypeDef.CSV.Rune()` (comma by default)
 2. **Validate headers**: every column name must exist in `schema.properties`; every `schema.required` field must be present as a column
 3. **Convert** each cell value based on the schema property type:
    - `string`: used as-is
@@ -199,3 +199,15 @@ This approach is simple and fast for the expected use case (hundreds to low thou
 - Constraint evaluation builds indexes in a single pass, then validates in a second pass
 - Export operates on already-parsed data
 - HCL tidy formats source bytes to preserve comments and attribute order
+
+`config.CSVOptions` holds an optional delimiter pointer so omission defaults to
+comma while an explicit empty string is rejected. The embedded configuration
+schema checks option shape, delimiter length/characters, and placement; semantic
+validation also enforces Go CSV rune rules and format compatibility for constructed
+configs. Input and output options are independent. The CLI passes input options
+to CSV parsing and `tidy.TidyFile`; export passes output options to
+`marshalCSV`. All use `encoding/csv` reader/writer separators, preserving
+existing conversion, diagnostics, and ordering. Tidy validates ambiguous headers
+before sorting columns with their cells and writing. Both writers quote a single
+empty string record explicitly to preserve it on re-read. No TSV parser or format
+alias is introduced.

@@ -1,0 +1,9 @@
+[
+  {
+    "level": "error",
+    "type": "items",
+    "file": "data/items.tsv",
+    "row": 0,
+    "message": "[path_equals_attr] path value \"tsv\" does not match attribute value \"csv\""
+  }
+]

@@ -1,0 +1,27 @@
+version: "0.0.0"
+types:
+  - name: items
+    input: csv
+    csv: {delimiter: "\t"}
+    match:
+      include: ['^data/.*\.tsv$']
+    schema:
+      type: object
+      properties:
+        title: {type: string}
+        id: {type: integer}
+        active: {type: boolean}
+        ratio: {type: number}
+        ext: {type: string}
+      required: [title, id, active, ratio, ext]
+      additionalProperties: false
+    constraints:
+      - type: unique
+        key: $.id
+      - type: path_equals_attr
+        path_selector: path.ext
+        references: {key: $.ext}
+    output:
+      path: out/items.csv
+      format: json
+      csv: {}

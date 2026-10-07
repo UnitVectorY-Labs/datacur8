@@ -184,7 +184,7 @@ func RunTidy(writeChanges bool, format string, version string) int {
 
 	for _, f := range files {
 		absPath := filepath.Join(rootDir, f.Path)
-		result, err := tidy.TidyFile(absPath, f.TypeDef.Input, !writeChanges)
+		result, err := tidy.TidyFile(absPath, f.TypeDef.Input, !writeChanges, f.TypeDef.CSV)
 		if err != nil {
 			tidyErrors = append(tidyErrors, reportEntry{
 				Level:   "error",
@@ -386,6 +386,7 @@ func parseYAML(raw []byte, filePath string) ([]map[string]any, []reportEntry) {
 
 func parseCSV(raw []byte, td *config.TypeDef, filePath string) ([]map[string]any, []reportEntry) {
 	reader := csv.NewReader(bytes.NewReader(raw))
+	reader.Comma = td.CSV.Rune()
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, []reportEntry{{
@@ -404,6 +405,9 @@ func parseCSV(raw []byte, td *config.TypeDef, filePath string) ([]map[string]any
 	}
 
 	headers := records[0]
+	if err := config.CSVHeaders(headers); err != nil {
+		return nil, []reportEntry{{Level: "error", File: filePath, Message: err.Error()}}
+	}
 
 	// Extract schema property types for type conversion
 	propTypes := schemaPropertyTypes(td.Schema)
