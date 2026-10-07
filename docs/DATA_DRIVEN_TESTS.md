@@ -157,3 +157,9 @@ Before committing a new fixture:
 - Add `expected/tidy/...` when testing `tidy`
 - Do not keep generated outputs in the case root (store snapshots under `expected/export/...` instead)
 - Prefer one clearly named behavior per case
+
+## CSV export coverage
+
+`example_examples_csv_export_success` covers the documented JSON-to-CSV example. `csv_export_from_formats` uses equivalent JSON/YAML/CSV/HCL records across multiple files and byte-identical snapshots, including optional-column ordering, Unicode, quoting, embedded LF/CR, empty strings, booleans, and numeric precision. `csv_export_empty` requires a header even without input items. `csv_export_numeric_boundaries` covers signed 64-bit YAML integers and finite float64 extremes. `invalid_csv_export_schema_*` and `invalid_csv_export_option` exercise configuration rejection.
+
+The fixture contract is unchanged. Focused CLI tests in `tests/csv_export_test.go` create temporary repositories for exit 3 conversion/write failures and assert existing destinations remain untouched. They also verify validation gating, repeat-export byte equality, and export→CSV-input→export with the same schema. Exporter unit tests cover explicit null/structured cells and numeric boundaries that source schema validation may reject before conversion. A successful validate fixture with configured outputs still requires every export snapshot.

@@ -1,0 +1,18 @@
+version: "0.0.0"
+types:
+  - name: items
+    input: json
+    match:
+      include: ['^data/.*\.json$']
+    schema:
+      type: object
+      properties:
+        title: {type: string}
+        ratio: {type: number}
+        id: {type: integer}
+        active: {type: boolean}
+      required: [id, title, ratio, active]
+      additionalProperties: false
+    output:
+      path: out/empty.csv
+      format: csv

@@ -175,10 +175,11 @@ Export produces deterministic output through strict ordering rules:
 
 - **JSON**: Items are wrapped in an object keyed by the type name, with the value being an array. Pretty-printed with 2-space indentation.
 - **YAML**: Same structure as JSON but serialized as YAML.
+- **CSV**: `config.CSVColumns` validates the export schema subset during semantic configuration validation and supplies sorted names/types to `export.marshalCSV`. The encoder checks every item for complete scalar cells and undeclared keys, formats finite numbers and signed 64-bit integers, and uses `encoding/csv` with LF records. A single empty cell is explicitly quoted to avoid the reader skipping a blank line. It flushes and checks writer errors.
 - **JSONL**: One minified JSON object per line.
 - **HCL**: One attribute named after the type containing the item array (`type_name = [{ ... }]`); object keys are sorted.
 
-Output directories are created automatically if they don't exist.
+Output directories are created automatically if they don't exist. Each output is serialized in memory before `os.WriteFile`, so conversion failures do not truncate an existing destination; outputs are independent rather than a global transaction. CSV input parses integers with `strconv.ParseInt(..., 10, 64)` before converting to the existing float64 representation, avoiding platform-dependent `int` limits. See [CSV export](/configuration#csv-export) for supported schemas and parser precision limits.
 
 ## Memory Model
 

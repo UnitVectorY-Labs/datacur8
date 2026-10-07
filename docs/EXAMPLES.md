@@ -446,3 +446,46 @@ Produces:
 ```
 
 Each line is a minified JSON object. Items are ordered by file path for deterministic output.
+
+## Export JSON products to CSV
+
+The working fixture is [`tests/example_examples_csv_export_success`](https://github.com/UnitVectorY-Labs/datacur8/tree/main/tests/example_examples_csv_export_success).
+
+`.datacur8`:
+
+```yaml
+version: "0.0.0"
+types:
+  - name: products
+    input: json
+    match:
+      include: ['^data/.*\.json$']
+    schema:
+      type: object
+      properties:
+        name: {type: string}
+        price: {type: number}
+        stock: {type: integer}
+      required: [name, price, stock]
+      additionalProperties: false
+    output:
+      path: out/products.csv
+      format: csv
+```
+
+`data/1.json`:
+
+```json
+{"name":"Widget","price":12.5,"stock":3}
+```
+
+Run `datacur8 validate`, then `datacur8 export`. `out/products.csv` contains:
+
+```csv
+name,price,stock
+Widget,12.5,3
+```
+
+Columns are alphabetically sorted from the schema rather than the first item. JSON, YAML, HCL, and CSV inputs can all produce this shape. To read it back, use `input: csv` with the same schema and a match pattern for the exported CSV, and select a different output path (configured outputs are excluded from discovery).
+
+Every declared column must be present in every item. Empty strings are valid; absent/null cells, extra undeclared keys, and structured values cannot be represented. Unsupported schemas fail with exit 1, source validation errors with exit 2, and export conversion/write errors with exit 3. See [CSV export](/configuration#csv-export) for the supported subset, precision, and round-trip limits.

@@ -546,6 +546,7 @@ Semantic validation checks that `references.type` matches a defined entry in `ty
 | `json` | Write a JSON array/object output (depending on export shape) |
 | `yaml` | Write YAML output |
 | `jsonl` | Write newline-delimited JSON objects |
+| `csv` | Write schema-defined scalar columns as a header and one row per item |
 | `hcl` | Write an HCL attribute named after the type whose value is the exported array |
 
 ```yaml
@@ -554,7 +555,21 @@ output:
   format: json
 ```
 
-Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as HCL, and HCL input can be exported as JSON, YAML, or JSONL.
+Export creates parent directories as needed. Input and output formats are independent: any supported input format can be exported as JSON, YAML, JSONL, HCL, or CSV (subject to CSV's schema and value restrictions).
+
+#### CSV export
+
+Set `output.format: csv` and an output path such as `out/products.csv`. CSV output has no type-name wrapper: one header and one row per item, in discovery/file order and then CSV source row order. Columns come from **all declared `schema.properties`**, sorted alphabetically, including optional properties. A dataset with zero items still writes the header and a final newline.
+
+The supported schema subset is an object with a nonempty `properties` map. Each property must directly declare exactly one scalar `type`: `string`, `boolean`, `integer`, or `number`. Type arrays (even a singleton), boolean property schemas, objects, arrays, omitted types, references (`$ref`, `$dynamicRef`), composition (`allOf`, `anyOf`, `oneOf`, `not`), conditionals (`if`, `then`, `else`), `patternProperties`, and `dependentSchemas` at the root or property level are unsupported for CSV export. These configuration mistakes return exit **1**. Ordinary validation keywords such as `required`, `enum`, string patterns, and numeric bounds continue to work. `additionalProperties` may allow extra data during validation, but actual undeclared keys cannot be exported.
+
+Every item must provide a non-null scalar value for every declared column, including optional properties. Missing cells, explicit nulls, structured values, and actual undeclared keys cannot be silently omitted, flattened, or stringified. Export conversion errors include the zero-based item index and property name and return exit **3**. Source values violating the JSON Schema return exit **2** first; choosing CSV output does not add value-level checks to `validate`.
+
+Strings, including empty strings, Unicode, whitespace, and formula-like strings, are preserved without spreadsheet sanitization. Go's CSV writer handles commas, quotes, and embedded LF/CR characters; record endings are LF, with a final newline. A single empty string cell is explicitly quoted (`""`) so the CSV reader does not skip it as a blank line. Booleans use `true`/`false`. Integers use decimal notation without a decimal suffix and must fit signed 64-bit range; floating-point integer values are checked before conversion. Finite numbers use enough digits to preserve their existing internal value. Precision already lost by a source parser is not recovered (JSON, HCL, and CSV numeric inputs use float64). YAML native integers retain their integer precision on export.
+
+Complete scalar records can be exported and read back using `input: csv` with the same schema. The current CSV reader converts integers to float64, so exact native YAML integer precision beyond float64's exact range is not guaranteed on re-import. Go's CSV reader also normalizes embedded CRLF to LF; the exporter itself preserves the original string bytes. Sparse and nullable exports need a future explicit encoding contract. Serialization completes before opening the destination, so conversion failure leaves an existing file untouched. Separate type outputs are not one transaction.
+
+#### HCL export
 
 HCL exports use the same aggregate shape as JSON and YAML, expressed as `type_name = [{ ... }]`. An empty dataset exports as `type_name = []`. Object keys are sorted for deterministic output. An aggregate export is a single object containing an array, so it is not the same shape as the individual input items.
 

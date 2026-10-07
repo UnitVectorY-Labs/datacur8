@@ -1,0 +1,66 @@
+version: "0.0.0"
+types:
+  - name: json_items
+    input: json
+    match:
+      include: ['^data/json/.*\.json$']
+    schema:
+      type: object
+      properties:
+        title: {type: string}
+        ratio: {type: number}
+        id: {type: integer}
+        active: {type: boolean}
+      required: [id, ratio, active]
+      additionalProperties: false
+    output:
+      path: out/json.csv
+      format: csv
+  - name: yaml_items
+    input: yaml
+    match:
+      include: ['^data/yaml/.*\.yaml$']
+    schema:
+      type: object
+      properties:
+        title: {type: string}
+        ratio: {type: number}
+        id: {type: integer}
+        active: {type: boolean}
+      required: [id, ratio, active]
+      additionalProperties: false
+    output:
+      path: out/yaml.csv
+      format: csv
+  - name: csv_items
+    input: csv
+    match:
+      include: ['^data/csv/.*\.csv$']
+    schema:
+      type: object
+      properties:
+        title: {type: string}
+        ratio: {type: number}
+        id: {type: integer}
+        active: {type: boolean}
+      required: [id, ratio, active]
+      additionalProperties: false
+    output:
+      path: out/csv.csv
+      format: csv
+  - name: hcl_items
+    input: hcl
+    match:
+      include: ['^data/hcl/.*\.hcl$']
+    schema:
+      type: object
+      properties:
+        title: {type: string}
+        ratio: {type: number}
+        id: {type: integer}
+        active: {type: boolean}
+      required: [id, ratio, active]
+      additionalProperties: false
+    output:
+      path: out/hcl.csv
+      format: csv
