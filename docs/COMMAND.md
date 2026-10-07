@@ -86,9 +86,12 @@ Output formats:
 | `json` | JSON object with one key (the type name) whose value is the exported array |
 | `yaml` | YAML object with one key (the type name) whose value is the exported array |
 | `jsonl` | One minified JSON object per line |
+| `csv` | Alphabetically sorted schema columns, one header and one row per item (no wrapper) |
 | `hcl` | HCL attribute named after the type whose value is the exported array (`widgets = [{ ... }]`) |
 
 Input and export formats are configured independently in `.datacur8`; `--format` controls diagnostics only. HCL input uses one attribute-based object per file and is validated against the same JSON Schema as the other input formats. See [Configuration](/configuration#hcl-input) for supported HCL expressions.
+
+CSV export supports complete flat scalar records; see [CSV export](/configuration#csv-export) for schema restrictions, numeric limits, and round-trip behavior. Empty datasets emit the schema-derived header. Unsupported CSV schemas return exit 1; invalid source data returns exit 2; missing cells, undeclared keys, and other conversion or write failures return exit 3. Conversion failure preserves an existing destination.
 
 The ordering of items within the output file is intended to be deterministic based on file path to minimize differences between sequential runs.
 
@@ -144,7 +147,7 @@ datacur8 version vX.Y.Z (goX.Y, os/arch)
 | `0` | Success |
 | `1` | Configuration invalid — the `.datacur8` file has errors, or the file is missing |
 | `2` | Data invalid — schema validation or constraint violations found |
-| `3` | Export failure — errors writing output files |
+| `3` | Export failure — errors converting or writing output files |
 | `4` | Tidy failure — errors parsing or writing files during tidy |
 | `5` | Tidy check failed — one or more files need formatting (check mode only) |
 

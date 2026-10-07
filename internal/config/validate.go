@@ -101,9 +101,14 @@ func Validate(cfg *Config, cliVersion string) (warnings []string, errs []error) 
 		// output
 		if t.Output != nil {
 			switch t.Output.Format {
-			case "json", "yaml", "jsonl", "hcl":
+			case "json", "yaml", "jsonl", "hcl", "csv":
 			default:
-				errs = append(errs, fmt.Errorf("%s: output.format %q must be json, yaml, jsonl, or hcl", prefix, t.Output.Format))
+				errs = append(errs, fmt.Errorf("%s: output.format %q must be json, yaml, jsonl, hcl, or csv", prefix, t.Output.Format))
+			}
+			if t.Output.Format == "csv" {
+				if _, err := CSVColumns(t.Schema); err != nil {
+					errs = append(errs, fmt.Errorf("%s: %w", prefix, err))
+				}
 			}
 			if prev, exists := outputPaths[t.Output.Path]; exists {
 				errs = append(errs, fmt.Errorf("%s: output.path %q conflicts with type %q", prefix, t.Output.Path, prev))

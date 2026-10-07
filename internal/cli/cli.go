@@ -547,7 +547,7 @@ func convertCSVValue(val string, schemaType string) (any, error) {
 		if val == "" {
 			return nil, fmt.Errorf("empty value for integer type")
 		}
-		i, err := strconv.Atoi(val)
+		i, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid integer value: %q", val)
 		}

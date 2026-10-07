@@ -26,10 +26,10 @@ In the first case you are spending engineering time not addressing your core bus
 
 - **JSON Schema validation** — validate every data file against an inline JSON Schema with full-featured support via `google/jsonschema-go`
 - **Cross-file constraints** — enforce uniqueness, foreign keys, and path-to-attribute rules across files and types
-- **Export** — compile validated data into deterministic JSON, YAML, JSONL, or HCL output files
+- **Export** — compile validated data into deterministic JSON, YAML, JSONL, HCL, or CSV output files
 - **Tidy** — normalize formatting (sorted keys, stable ordering) for clean diffs
 - **Strict mode** — optionally enforce `additionalProperties: false` on all object schemas
-- **CSV support** — schema-guided type conversion with header validation
+- **CSV support** — schema-guided input conversion with header validation, plus deterministic export of complete flat scalar datasets
 - **HCL support** — attribute-based HCL2 input validated with JSON Schema, HCL exports, and comment-preserving formatting
 - **Git-friendly** — designed for CI pipelines; identical results locally and in automation
 

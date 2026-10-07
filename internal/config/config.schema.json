@@ -220,7 +220,8 @@
                   "json",
                   "yaml",
                   "jsonl",
-                  "hcl"
+                  "hcl",
+                  "csv"
                 ]
               }
             }

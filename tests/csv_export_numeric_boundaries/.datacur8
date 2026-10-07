@@ -1,0 +1,16 @@
+version: "0.0.0"
+types:
+  - name: bounds
+    input: yaml
+    match:
+      include: ['^data/.*\.yaml$']
+    schema:
+      type: object
+      properties:
+        low: {type: integer}
+        high: {type: integer}
+        tiny: {type: number}
+        huge: {type: number}
+    output:
+      path: out/bounds.csv
+      format: csv

@@ -1,0 +1,18 @@
+version: "0.0.0"
+types:
+  - name: products
+    input: json
+    match:
+      include: ['^data/.*\.json$']
+    schema:
+      type: object
+      properties:
+        name: {type: string}
+        price: {type: number}
+        stock: {type: integer}
+      required: [name, price, stock]
+      additionalProperties: false
+    output:
+      path: out/products.csv
+      format: csv
+      delimiter: ";"

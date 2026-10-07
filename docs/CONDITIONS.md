@@ -30,7 +30,7 @@ Reference for validation conditions, error messages, and output formats returned
 | Configuration | `1` | Missing schema | Message pattern: types[N](name): schema is required. Every type must define a schema. |
 | Configuration | `1` | Invalid schema root type | Message pattern: types[N](name): schema.type must be \"object\". All datacur8 schemas must have root `type: object`. |
 | Configuration | `1` | Output path conflict | Message pattern: types[N](name): output.path \"path\" conflicts with type \"other\". Two types cannot write to the same output path. |
-| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, jsonl, or hcl. |
+| Configuration | `1` | Invalid output format | Message pattern: types[N](name): output.format \"X\" must be json, yaml, jsonl, hcl, or csv. |
 | Configuration | `1` | Invalid constraint selector | Message pattern: types[N](name).constraints[M]: key \"X\" is not a valid selector: ... Valid selectors include `$`, `$.field`, `$.a.b.c`, and `$.items[*].id`. |
 | Configuration | `1` | Unknown constraint type | Message pattern: types[N](name).constraints[M]: unknown constraint type \"X\". Supported types: `unique`, `foreign_key`, `path_equals_attr`. |
 | Configuration | `1` | Missing references for `foreign_key` | Message pattern: types[N](name).constraints[M]: references is required for foreign_key. |
@@ -49,6 +49,8 @@ Reference for validation conditions, error messages, and output formats returned
 | Data Validation | `2` | Unique constraint violation | Message pattern: [unique] duplicate value \"X\" for key $.field. Two or more items in the same type share the same value for a unique key. |
 | Data Validation | `2` | Foreign key constraint violation | Message pattern: [foreign_key] foreign key \"X\" not found in refType.$.refKey. The owning item references a value that does not exist in the referenced type key set. |
 | Data Validation | `2` | Path equals attribute violation | Message pattern: [path_equals_attr] path value \"X\" does not match attribute value \"Y\". A path-derived value (file name, parent folder, or capture group) does not match the item attribute. |
+| Configuration | `1` | Unsupported CSV export schema | CSV export requires nonempty directly declared scalar properties; nested/ambiguous types, references, composition, and conditional schemas are unsupported. See [CSV export](/configuration#csv-export). |
+| Export | `3` | CSV conversion failure | Message includes `marshaling csv output for type`, zero-based `item N, property "X"`, and missing/null cell, undeclared column, scalar type, or numeric range details. Otherwise valid data can fail CSV conversion. Invalid source data still fails validation with exit 2 first. Serialization failure preserves existing output. |
 | Export | `3` | Directory creation failure | Message starts with: creating output directory for type: ... datacur8 failed to create the output directory before writing export output. |
 | Export | `3` | Write failure | Message starts with: writing output file for type: ... datacur8 failed while writing the output file. |
 | Export | `3` | Marshaling failure | Message starts with: marshaling format output for type: ... datacur8 failed to encode export data in the requested output format. |
