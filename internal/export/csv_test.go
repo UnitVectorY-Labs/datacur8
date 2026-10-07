@@ -1,12 +1,13 @@
 package export
 
 import (
-	"github.com/UnitVectorY-Labs/datacur8/internal/config"
 	"math"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/UnitVectorY-Labs/datacur8/internal/config"
 )
 
 func TestCSVNumericCells(t *testing.T) {
