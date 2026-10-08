@@ -7,7 +7,7 @@ permalink: /
 
 # What is datacur8?
 
-**datacur8** is a config-driven command-line tool that validates, exports, and tidies structured data files (JSON, YAML, CSV/TSV, HCL, and TOML) intended to live in a Git repository. It brings database-style integrity checks to file-based datasets, without forcing you to build a database app.
+**datacur8** is a config-driven command-line tool that validates, exports, and tidies structured data files (JSON, JSONL/NDJSON, YAML, CSV/TSV, HCL, and TOML) intended to live in a Git repository. It brings database-style integrity checks to file-based datasets, without forcing you to build a database app.
 
 **The problem:** When teams need to manage “slow-moving” datasets, they usually end up in one of two bad places:
 
@@ -26,9 +26,10 @@ In the first case you are spending engineering time not addressing your core bus
 
 - **JSON Schema validation** — validate every data file against an inline JSON Schema with full-featured support via `google/jsonschema-go`
 - **Cross-file constraints** — enforce uniqueness, foreign keys, and path-to-attribute rules across files and types
-- **Export** — compile validated data into deterministic JSON, YAML, JSONL, HCL, CSV, or TOML output files
+- **Export** — compile validated data into deterministic JSON, YAML, JSONL/NDJSON, HCL, CSV, or TOML output files
 - **Tidy** — normalize formatting (sorted keys, stable ordering) for clean diffs
 - **Strict mode** — optionally enforce `additionalProperties: false` on all object schemas
+- **JSONL/NDJSON support** — one object per line, record-level diagnostics, and canonical tidy
 - **CSV/TSV support** — schema-guided input conversion with header validation, plus deterministic export of complete flat scalar datasets
 - **TOML support** — TOML 1.1.0 records, checked JSON conversion, aggregate exports, and canonical tidy
 - **HCL support** — attribute-based HCL2 input validated with JSON Schema, HCL exports, and comment-preserving formatting

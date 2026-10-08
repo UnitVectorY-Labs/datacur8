@@ -192,3 +192,26 @@ for that data syntax; preserve these tabs when editing snapshots.
 `toml_to_*` covers TOML→JSON/YAML/JSONL/HCL/TOML with native temporal values, nested/inline tables, arrays of tables, mixed arrays, and multiline/literal strings. `toml_export_from_*` covers compatible JSON/YAML/CSV/TSV/HCL→TOML. `toml_to_tsv` checks TOML→tab-delimited CSV. `invalid_toml_csv_*_options` ensures CSV-only settings remain invalid for TOML. `toml_export_empty` and `toml_numeric_boundaries` lock down explicit empty aggregates and checked numeric conversion. Parser/conversion failures, schema/strict-mode failures, unsupported config options, and cross-format constraints have individual fixtures. The documented catalog is `example_examples_toml_catalog_success`.
 
 `tidy_toml` locks down comment removal, sorted keys, inline tables, and native temporal types. Focused CLI tests in `tests/toml_test.go` prove idempotence, invalid-input no-write behavior (exit 4), null export rejection without replacing a destination (exit 3), validation gating (exit 2), write failures, output exclusion, and repeat-export equality. Converter tests explicitly exercise TOML **1.1.0** syntax, temporal precision, arbitrary keys/Unicode, heterogeneous arrays, empty collections, exact integer boundaries, and deterministic aggregate round-trip. The fixture harness and completeness contract are unchanged.
+
+## JSONL / NDJSON coverage
+
+`example_examples_jsonl_ndjson_catalog_success` backs the documented mixed-extension
+catalog. `jsonl_to_*` and `ndjson_to_*` verify every output format;
+`*_empty_to_*` lock down zero-item output shapes and unchanged empty tidy files.
+`tidy_jsonl` and `tidy_ndjson` cover CRLF, missing final newline, recursive key
+ordering, Unicode, escaped newlines, mixed arrays, null, empty collections, unusual
+keys, and exact numeric preservation. `*_large_record` contains a record over
+64 KiB. Framing, schema, both strict overlays, no coercion, constraint locations,
+and cross-format references have individual failure/success fixtures. Every error
+fixture snapshots structured JSON diagnostics with original one-based `line`.
+
+Focused tests in `tests/jsonl_test.go` check text/JSON/YAML locations, malformed
+input no-write behavior (tidy exit 4), validation-gated export with unchanged
+destinations (exit 2), tidy idempotence, existing JSONL-export read-back without a
+wrapper, output exclusion, and repeat-export equality. Parser tests verify that a
+malformed later record returns no partial items. Config fixtures and semantic
+tests cover both aliases and unsupported options. Existing CSV snapshots and the
+fixture completeness contract/harness remain unchanged.
+
+The `.gitattributes` rules permit CRLF in NDJSON fixture inputs and intentionally
+invalid whitespace-only records in `*_whitespace_line`; preserve those bytes.

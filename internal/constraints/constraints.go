@@ -15,7 +15,8 @@ type Item struct {
 	FilePath     string
 	Data         any               // The parsed data (map[string]any)
 	PathCaptures map[string]string // Captured path segments
-	RowIndex     int               // For CSV, the row index; -1 for JSON/YAML
+	RowIndex     int               // Zero-based CSV row; -1 for other formats
+	LineNumber   int               // One-based JSONL/NDJSON line; 0 otherwise
 }
 
 // Error represents a constraint violation.
@@ -26,10 +27,14 @@ type Error struct {
 	FilePath       string
 	Message        string
 	RowIndex       int // -1 if not applicable
+	LineNumber     int // 0 if not applicable
 }
 
 // Error implements the error interface.
 func (e *Error) Error() string {
+	if e.LineNumber > 0 {
+		return fmt.Sprintf("[%s] %s %s (line %d): %s", e.TypeName, e.ConstraintType, e.FilePath, e.LineNumber, e.Message)
+	}
 	if e.RowIndex >= 0 {
 		return fmt.Sprintf("[%s] %s %s (row %d): %s", e.TypeName, e.ConstraintType, e.FilePath, e.RowIndex, e.Message)
 	}
@@ -71,6 +76,9 @@ func Evaluate(items map[string][]Item, typeDefs []config.TypeDef) []Error {
 		}
 		if errs[i].FilePath != errs[j].FilePath {
 			return errs[i].FilePath < errs[j].FilePath
+		}
+		if errs[i].LineNumber != errs[j].LineNumber {
+			return errs[i].LineNumber < errs[j].LineNumber
 		}
 		return errs[i].RowIndex < errs[j].RowIndex
 	})
@@ -115,8 +123,9 @@ func evalUnique(typeName, constraintID string, cd config.ConstraintDef, items []
 // evalUniqueTypeScope enforces uniqueness of a scalar key across all items of the type.
 func evalUniqueTypeScope(typeName, constraintID string, cd config.ConstraintDef, sel *selector.Selector, caseSensitive bool, items []Item) []Error {
 	type seen struct {
-		filePath string
-		rowIndex int
+		filePath   string
+		rowIndex   int
+		lineNumber int
 	}
 	index := make(map[string][]seen)
 
@@ -126,7 +135,7 @@ func evalUniqueTypeScope(typeName, constraintID string, cd config.ConstraintDef,
 			continue
 		}
 		key := normalizeKey(vals[0], caseSensitive)
-		index[key] = append(index[key], seen{filePath: item.FilePath, rowIndex: item.RowIndex})
+		index[key] = append(index[key], seen{filePath: item.FilePath, rowIndex: item.RowIndex, lineNumber: item.LineNumber})
 	}
 
 	var errs []Error
@@ -142,6 +151,7 @@ func evalUniqueTypeScope(typeName, constraintID string, cd config.ConstraintDef,
 				FilePath:       e.filePath,
 				Message:        fmt.Sprintf("duplicate value %q for key %s", key, cd.Key),
 				RowIndex:       e.rowIndex,
+				LineNumber:     e.lineNumber,
 			})
 		}
 	}
@@ -166,6 +176,7 @@ func evalUniqueItemScope(typeName, constraintID string, cd config.ConstraintDef,
 					FilePath:       item.FilePath,
 					Message:        fmt.Sprintf("duplicate value %q for key %s within item", key, cd.Key),
 					RowIndex:       item.RowIndex,
+					LineNumber:     item.LineNumber,
 				})
 			}
 			seen[key] = true
@@ -236,6 +247,7 @@ func evalForeignKey(typeName, constraintID string, cd config.ConstraintDef, item
 				FilePath:       item.FilePath,
 				Message:        fmt.Sprintf("key selector %s resolved to multiple values; expected scalar", cd.Key),
 				RowIndex:       item.RowIndex,
+				LineNumber:     item.LineNumber,
 			})
 			continue
 		}
@@ -248,6 +260,7 @@ func evalForeignKey(typeName, constraintID string, cd config.ConstraintDef, item
 				FilePath:       item.FilePath,
 				Message:        fmt.Sprintf("foreign key %q not found in %s.%s", key, cd.References.Type, cd.References.Key),
 				RowIndex:       item.RowIndex,
+				LineNumber:     item.LineNumber,
 			})
 		}
 	}
@@ -293,6 +306,7 @@ func evalPathEqualsAttr(typeName, constraintID string, cd config.ConstraintDef, 
 				FilePath:       item.FilePath,
 				Message:        fmt.Sprintf("path_selector %q not found in path captures", cd.PathSelector),
 				RowIndex:       item.RowIndex,
+				LineNumber:     item.LineNumber,
 			})
 			continue
 		}
@@ -306,6 +320,7 @@ func evalPathEqualsAttr(typeName, constraintID string, cd config.ConstraintDef, 
 				FilePath:       item.FilePath,
 				Message:        fmt.Sprintf("attribute selector %s resolved to no values", cd.References.Key),
 				RowIndex:       item.RowIndex,
+				LineNumber:     item.LineNumber,
 			})
 			continue
 		}
@@ -317,6 +332,7 @@ func evalPathEqualsAttr(typeName, constraintID string, cd config.ConstraintDef, 
 				FilePath:       item.FilePath,
 				Message:        fmt.Sprintf("attribute selector %s resolved to multiple values; expected scalar", cd.References.Key),
 				RowIndex:       item.RowIndex,
+				LineNumber:     item.LineNumber,
 			})
 			continue
 		}
@@ -335,6 +351,7 @@ func evalPathEqualsAttr(typeName, constraintID string, cd config.ConstraintDef, 
 				FilePath:       item.FilePath,
 				Message:        fmt.Sprintf("path value %q does not match attribute value %q", pathVal, vals[0]),
 				RowIndex:       item.RowIndex,
+				LineNumber:     item.LineNumber,
 			})
 		}
 	}

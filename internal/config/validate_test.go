@@ -114,7 +114,7 @@ func TestValidate_InputInvalid(t *testing.T) {
 		},
 	}
 	_, errs := Validate(cfg, "dev")
-	requireError(t, errs, "must be json, yaml, csv, hcl, or toml")
+	requireError(t, errs, "must be json, jsonl, ndjson, yaml, csv, hcl, or toml")
 }
 
 func TestValidate_EmptyInclude(t *testing.T) {

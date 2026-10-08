@@ -1,0 +1,9 @@
+[
+  {
+    "level": "error",
+    "type": "records",
+    "file": "data/1.ndjson",
+    "line": 1,
+    "message": "[unique] duplicate value \"x\" for key $.tags[*] within item"
+  }
+]

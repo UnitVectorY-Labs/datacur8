@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "file": "data/1.ndjson",
+    "line": 1,
+    "message": "parsing JSONL/NDJSON: line 1: json: cannot unmarshal array into Go value of type map[string]interface {}"
+  }
+]

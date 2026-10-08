@@ -10,6 +10,7 @@ import (
 
 	"github.com/UnitVectorY-Labs/datacur8/internal/config"
 	"github.com/UnitVectorY-Labs/datacur8/internal/hcldata"
+	"github.com/UnitVectorY-Labs/datacur8/internal/jsonldata"
 	"github.com/UnitVectorY-Labs/datacur8/internal/tomldata"
 	"gopkg.in/yaml.v3"
 )
@@ -23,11 +24,13 @@ type TidyResult struct {
 }
 
 // TidyFile tidies a single file.
-// input is the file format: "json", "yaml", "csv", "hcl", "toml"
+// input is the file format: json, jsonl, ndjson, yaml, csv, hcl, toml.
 // dryRun: if true, don't write changes, just report if they would change
 // options supplies the CSV input delimiter; omission defaults to comma.
 func TidyFile(path string, input string, dryRun bool, options ...*config.CSVOptions) (TidyResult, error) {
 	switch input {
+	case "jsonl", "ndjson":
+		return tidyJSONL(path, dryRun)
 	case "json":
 		return tidyJSON(path, dryRun)
 	case "yaml":
@@ -268,6 +271,24 @@ func tidyTOML(path string, dryRun bool) (TidyResult, error) {
 	tidied, err := tomldata.Format(original, path)
 	if err != nil {
 		return TidyResult{Path: path}, fmt.Errorf("parsing TOML: %w", err)
+	}
+	changed := !bytes.Equal(original, tidied)
+	if changed && !dryRun {
+		if err := os.WriteFile(path, tidied, 0o644); err != nil {
+			return TidyResult{Path: path}, fmt.Errorf("writing file: %w", err)
+		}
+	}
+	return TidyResult{Path: path, Changed: changed, Original: original, Tidied: tidied}, nil
+}
+
+func tidyJSONL(path string, dryRun bool) (TidyResult, error) {
+	original, err := os.ReadFile(path)
+	if err != nil {
+		return TidyResult{Path: path}, fmt.Errorf("reading file: %w", err)
+	}
+	tidied, err := jsonldata.Format(original)
+	if err != nil {
+		return TidyResult{Path: path}, fmt.Errorf("parsing JSONL/NDJSON: %w", err)
 	}
 	changed := !bytes.Equal(original, tidied)
 	if changed && !dryRun {

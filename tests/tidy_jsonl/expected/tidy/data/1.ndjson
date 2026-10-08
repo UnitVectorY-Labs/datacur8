@@ -1,0 +1,2 @@
+{"id":"α","nested":{"a":[{"a":"escaped\nnewline","β":"<雪>"},null,true,3],"z":[]},"number":9007199254740993,"odd.key":{},"z":null}
+{"id":"second"}

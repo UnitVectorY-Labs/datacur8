@@ -1,2 +1,5 @@
 # A trailing tab in TSV represents an empty final cell, not stray whitespace.
 *.tsv whitespace=-blank-at-eol
+# JSONL/NDJSON fixtures intentionally exercise CRLF framing and invalid blank records.
+tests/**/data/*.ndjson whitespace=cr-at-eol
+tests/*_whitespace_line/data/*.ndjson whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab,cr-at-eol

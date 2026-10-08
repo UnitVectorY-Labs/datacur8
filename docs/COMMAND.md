@@ -85,7 +85,7 @@ Output formats:
 |--------|-------------|
 | `json` | JSON object with one key (the type name) whose value is the exported array |
 | `yaml` | YAML object with one key (the type name) whose value is the exported array |
-| `jsonl` | One minified JSON object per line |
+| `jsonl`, `ndjson` | Equivalent formats: one minified JSON object per line; empty dataset is zero bytes |
 | `csv` | Alphabetically sorted schema columns, one header and one row per item (no wrapper) |
 | `toml` | TOML type-name key containing an array of inline-table records (`records = [{id = 'a'}]`) |
 | `hcl` | HCL attribute named after the type whose value is the exported array (`widgets = [{ ... }]`) |
@@ -121,6 +121,7 @@ datacur8 tidy [--write] [--format text|json|yaml]
   - exit code is non-zero when any file needs tidying (useful for CI / merge gates)
 - `--write` applies the tidy changes in place and exits non-zero only on parse/write errors
 - **JSON**: pretty-printed with sorted keys
+- **JSONL/NDJSON**: one minified object per line, recursively sorted keys, record order preserved, LF and final newline; empty files remain empty
 - **YAML**: stable formatting with sorted keys; comments are removed
 - **CSV/TSV**: sorted columns (alphabetical), with cells reordered together and the configured input delimiter preserved
 - **TOML**: TOML 1.1.0 canonical reserialization; comments removed, keys sorted, tables inline, native temporal types retained (nanosecond precision)
@@ -197,3 +198,20 @@ CLI `--format` still selects diagnostics only (`text|json|yaml`).
 Invalid delimiter/options return exit 1; TSV data failures return exit 2 and
 block export; export encoding/write failures return exit 3. Tidy parse/header
 failures return exit 4 without rewriting that file.
+
+### JSONL / NDJSON records
+
+`validate` and `export` accept `input: jsonl` and `input: ndjson` as equivalent
+values. Each physical line is one object checked independently against the same
+schema and constraints. File discovery order precedes record order. Errors report
+one-based `line` locations in text, JSON, and YAML; CSV `row` stays zero-based.
+Malformed files contribute no partial records and validation failure blocks
+export (exit **2**). Read failures also block export.
+
+`tidy` checks all records before rewriting each file. It preserves nested values,
+escaped newlines, Unicode, and numeric values, normalizes separators, and is
+idempotent. Check mode returns **5** with a diff when formatting differs and
+writes nothing. Malformed records return **4** without rewriting that file.
+`.datacur8` remains YAML; `--format` selects diagnostics (`text|json|yaml`), not data
+encoding. See [JSONL / NDJSON input](/configuration#jsonl--ndjson-input) for framing,
+object-only restrictions, and JSON numeric precision limits.

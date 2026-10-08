@@ -63,7 +63,7 @@ func Export(items map[string][]any, typeDefs []config.TypeDef, rootDir string) (
 			content, err = hcldata.Marshal(td.Name, data)
 		case "csv":
 			content, err = marshalCSV(td.Schema, data, td.Output.CSV)
-		case "jsonl":
+		case "jsonl", "ndjson":
 			content, err = marshalJSONL(data)
 		default:
 			errs = append(errs, fmt.Errorf("unsupported output format %q for type %s", td.Output.Format, td.Name))

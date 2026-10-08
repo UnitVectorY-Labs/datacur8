@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/UnitVectorY-Labs/datacur8/internal/discovery"
 	"github.com/UnitVectorY-Labs/datacur8/internal/export"
 	"github.com/UnitVectorY-Labs/datacur8/internal/hcldata"
+	"github.com/UnitVectorY-Labs/datacur8/internal/jsonldata"
 	"github.com/UnitVectorY-Labs/datacur8/internal/schema"
 	"github.com/UnitVectorY-Labs/datacur8/internal/tidy"
 	"github.com/UnitVectorY-Labs/datacur8/internal/tomldata"
@@ -37,6 +39,7 @@ type reportEntry struct {
 	Type    string `json:"type,omitempty" yaml:"type,omitempty"`
 	File    string `json:"file,omitempty" yaml:"file,omitempty"`
 	Row     *int   `json:"row,omitempty" yaml:"row,omitempty"`
+	Line    *int   `json:"line,omitempty" yaml:"line,omitempty"`
 	Message string `json:"message" yaml:"message"`
 }
 
@@ -187,12 +190,17 @@ func RunTidy(writeChanges bool, format string, version string) int {
 		absPath := filepath.Join(rootDir, f.Path)
 		result, err := tidy.TidyFile(absPath, f.TypeDef.Input, !writeChanges, f.TypeDef.CSV)
 		if err != nil {
-			tidyErrors = append(tidyErrors, reportEntry{
+			entry := reportEntry{
 				Level:   "error",
 				Type:    f.TypeName,
 				File:    f.Path,
 				Message: err.Error(),
-			})
+			}
+			var lineErr *jsonldata.Error
+			if errors.As(err, &lineErr) {
+				entry.Line = new(lineErr.Line)
+			}
+			tidyErrors = append(tidyErrors, entry)
 			continue
 		}
 
@@ -305,8 +313,12 @@ func parseAndValidateFiles(files []discovery.DiscoveredFile, cfg *config.Config)
 
 		for i, data := range parsed {
 			rowIndex := -1
+			lineNumber := 0
 			if f.TypeDef.Input == "csv" {
 				rowIndex = i
+			}
+			if f.TypeDef.Input == "jsonl" || f.TypeDef.Input == "ndjson" {
+				lineNumber = i + 1
 			}
 
 			schemaErrs := schema.ValidateItem(f.TypeDef.Schema, data, cfg.StrictMode)
@@ -320,6 +332,9 @@ func parseAndValidateFiles(files []discovery.DiscoveredFile, cfg *config.Config)
 				if rowIndex >= 0 {
 					entry.Row = new(rowIndex)
 				}
+				if lineNumber > 0 {
+					entry.Line = new(lineNumber)
+				}
 				schemaEntries = append(schemaEntries, entry)
 			}
 
@@ -329,6 +344,7 @@ func parseAndValidateFiles(files []discovery.DiscoveredFile, cfg *config.Config)
 				Data:         data,
 				PathCaptures: f.PathCaptures,
 				RowIndex:     rowIndex,
+				LineNumber:   lineNumber,
 			})
 		}
 	}
@@ -337,9 +353,20 @@ func parseAndValidateFiles(files []discovery.DiscoveredFile, cfg *config.Config)
 }
 
 // parseDataFile parses raw file bytes into a slice of data items.
-// JSON, YAML, HCL, and TOML produce a single-element slice; CSV produces one per row.
+// JSON, YAML, HCL, and TOML produce one item; CSV one per row; JSONL/NDJSON one per line.
 func parseDataFile(raw []byte, inputFormat string, td *config.TypeDef, filePath string) ([]map[string]any, []reportEntry) {
 	switch inputFormat {
+	case "jsonl", "ndjson":
+		data, err := jsonldata.Parse(raw)
+		if err != nil {
+			entry := reportEntry{Level: "error", File: filePath, Message: fmt.Sprintf("parsing JSONL/NDJSON: %v", err)}
+			var lineErr *jsonldata.Error
+			if errors.As(err, &lineErr) {
+				entry.Line = new(lineErr.Line)
+			}
+			return nil, []reportEntry{entry}
+		}
+		return data, nil
 	case "json":
 		return parseJSON(raw, filePath)
 	case "yaml":
@@ -588,6 +615,9 @@ func reportErrors(format string, entries []reportEntry) {
 			if e.File != "" {
 				parts = append(parts, e.File)
 			}
+			if e.Line != nil {
+				parts = append(parts, fmt.Sprintf("(line %d)", *e.Line))
+			}
 			if e.Row != nil {
 				parts = append(parts, fmt.Sprintf("(row %d)", *e.Row))
 			}
@@ -619,6 +649,9 @@ func constraintErrorsToEntries(errs []constraints.Error) []reportEntry {
 			Type:    e.TypeName,
 			File:    e.FilePath,
 			Message: fmt.Sprintf("[%s] %s", e.ConstraintType, e.Message),
+		}
+		if e.LineNumber > 0 {
+			entries[i].Line = new(e.LineNumber)
 		}
 		if e.RowIndex >= 0 {
 			entries[i].Row = new(e.RowIndex)

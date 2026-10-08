@@ -1,0 +1,8 @@
+[
+  {
+    "level": "error",
+    "file": "data/1.ndjson",
+    "line": 2,
+    "message": "parsing JSONL/NDJSON: line 2: unexpected end of JSON input"
+  }
+]
