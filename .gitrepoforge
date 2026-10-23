@@ -9,3 +9,4 @@ config:
   docs:
     enabled: true
     domain: datacur8.unitvectorylabs.com
+  osv: sarif
