@@ -1,7 +1,7 @@
 package export
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"os"
 	"path/filepath"
 	"strings"
@@ -326,5 +326,16 @@ func TestExportUnsupportedFormat(t *testing.T) {
 	}
 	if !strings.Contains(errs[0].Error(), "unsupported") {
 		t.Errorf("expected unsupported format error, got: %v", errs[0])
+	}
+}
+
+func TestJSONV2Output(t *testing.T) {
+	got, err := marshalJSON("items", []any{map[string]any{"z": "<>&", "a": []any(nil)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "{\n  \"items\": [\n    {\n      \"a\": [],\n      \"z\": \"<>&\"\n    }\n  ]\n}\n"
+	if string(got) != want {
+		t.Fatalf("got %s, want %s", got, want)
 	}
 }

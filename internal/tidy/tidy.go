@@ -3,7 +3,8 @@ package tidy
 import (
 	"bytes"
 	"encoding/csv"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"sort"
@@ -79,14 +80,11 @@ func tidyJSON(path string, dryRun bool) (TidyResult, error) {
 }
 
 func marshalJSONIndent(data any) ([]byte, error) {
-	buf := &bytes.Buffer{}
-	enc := json.NewEncoder(buf)
-	enc.SetIndent("", "  ")
-	enc.SetEscapeHTML(false)
-	if err := enc.Encode(data); err != nil {
+	out, err := json.Marshal(data, json.Deterministic(true), jsontext.WithIndent("  "))
+	if err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	return append(out, '\n'), nil
 }
 
 func tidyYAML(path string, dryRun bool) (TidyResult, error) {

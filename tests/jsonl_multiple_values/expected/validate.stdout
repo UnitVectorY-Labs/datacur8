@@ -3,6 +3,6 @@
     "level": "error",
     "file": "data/1.ndjson",
     "line": 1,
-    "message": "parsing JSONL/NDJSON: line 1: invalid character '{' after top-level value"
+    "message": "parsing JSONL/NDJSON: line 1: jsontext: invalid character '{' after top-level value after offset 11"
   }
 ]

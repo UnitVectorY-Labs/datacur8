@@ -1,7 +1,8 @@
 package export
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -96,7 +97,7 @@ func marshalJSON(typeName string, data []any) ([]byte, error) {
 		data = []any{}
 	}
 	wrapper := map[string]any{typeName: data}
-	out, err := json.MarshalIndent(wrapper, "", "  ")
+	out, err := json.Marshal(wrapper, json.Deterministic(true), jsontext.WithIndent("  "))
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +120,7 @@ func marshalYAML(typeName string, data []any) ([]byte, error) {
 func marshalJSONL(data []any) ([]byte, error) {
 	var buf []byte
 	for _, item := range data {
-		line, err := json.Marshal(item)
+		line, err := json.Marshal(item, json.Deterministic(true))
 		if err != nil {
 			return nil, err
 		}

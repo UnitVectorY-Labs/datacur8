@@ -243,10 +243,9 @@ Zero means no line; the independent `RowIndex` remains zero-based CSV metadata
 with -1 for other inputs. CLI `reportEntry.Line` is optional in JSON/YAML and text.
 Path captures remain shared file metadata for all records.
 
-`jsonldata.Format` validates the entire file before producing any output. A second
-JSON decode with `UseNumber` preserves exact numeric values when formatting,
-while the initial float64 decode enforces the same accepted numeric range as
-validation. Go's JSON encoder sorts keys recursively, minifies each object, and
+`jsonldata.Format` validates the entire file before producing any output. Raw JSON formatting preserves exact numeric values, while the initial float64
+decode enforces the same accepted numeric range as validation. The JSON formatter
+sorts keys recursively, minifies each object, and
 writes LF. Empty files stay empty. `tidyJSONL` compares full content before writing;
 parse errors cannot rewrite an earlier valid prefix. `RunTidy` extracts wrapped
 line errors for structured diagnostics. Tidy checks syntax, not schema/constraints.
