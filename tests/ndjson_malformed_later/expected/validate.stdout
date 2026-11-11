@@ -3,6 +3,6 @@
     "level": "error",
     "file": "data/1.ndjson",
     "line": 2,
-    "message": "parsing JSONL/NDJSON: line 2: unexpected end of JSON input"
+    "message": "parsing JSONL/NDJSON: line 2: jsontext: unexpected EOF within \"/id\" after offset 6"
   }
 ]

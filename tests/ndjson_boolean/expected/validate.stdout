@@ -3,6 +3,6 @@
     "level": "error",
     "file": "data/1.ndjson",
     "line": 1,
-    "message": "parsing JSONL/NDJSON: line 1: json: cannot unmarshal bool into Go value of type map[string]interface {}"
+    "message": "parsing JSONL/NDJSON: line 1: record must be a JSON object"
   }
 ]

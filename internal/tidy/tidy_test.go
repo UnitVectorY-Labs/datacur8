@@ -1,6 +1,7 @@
 package tidy
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -316,5 +317,21 @@ func TestTidyResult_Path(t *testing.T) {
 	}
 	if res.Path != p {
 		t.Errorf("expected path %s, got %s", p, res.Path)
+	}
+}
+
+func TestTidyJSONRejectsAmbiguousInput(t *testing.T) {
+	for _, raw := range [][]byte{[]byte(`{"a":1,"a":2}`), []byte("{\"a\":\"\xff\"}")} {
+		path := filepath.Join(t.TempDir(), "data.json")
+		if err := os.WriteFile(path, raw, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := TidyFile(path, "json", false); err == nil {
+			t.Fatalf("accepted %q", raw)
+		}
+		got, err := os.ReadFile(path)
+		if err != nil || !bytes.Equal(got, raw) {
+			t.Fatalf("changed input: %q, %v", got, err)
+		}
 	}
 }
