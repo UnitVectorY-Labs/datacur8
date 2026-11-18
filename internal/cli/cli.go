@@ -3,7 +3,8 @@ package cli
 import (
 	"bytes"
 	"encoding/csv"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"os"
@@ -601,9 +602,8 @@ func convertCSVValue(val string, schemaType string) (any, error) {
 func reportErrors(format string, entries []reportEntry) {
 	switch format {
 	case "json":
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
-		_ = enc.Encode(entries)
+		_ = json.MarshalWrite(os.Stdout, entries, json.Deterministic(true), jsontext.WithIndent("  "))
+		_, _ = fmt.Fprintln(os.Stdout)
 	case "yaml":
 		_ = yaml.NewEncoder(os.Stdout).Encode(entries)
 	default:
