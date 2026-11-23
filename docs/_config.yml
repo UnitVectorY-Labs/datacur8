@@ -1,9 +1,13 @@
 title: datacur8
 description: "A config-driven CLI that validates and enforces cross-file integrity for structured JSON, JSONL/NDJSON, YAML, CSV/TSV, HCL, and TOML datasets in a repo, then can export compiled outputs and deterministically tidy files for stable diffs."
 
-remote_theme: UnitVectorY-Labs/uvy-docs-theme@v0.2.0
+remote_theme: UnitVectorY-Labs/uvy-docs-theme@v0.4.0
 plugins:
   - jekyll-remote-theme
+
+uvy_docs:
+  license: "MIT License"
+  license_url: "https://github.com/UnitVectorY-Labs/datacur8/blob/main/LICENSE"
 
 callouts:
   highlight:
