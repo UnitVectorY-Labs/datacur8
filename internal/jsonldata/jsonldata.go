@@ -3,7 +3,8 @@ package jsonldata
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"unicode/utf8"
 )
@@ -19,9 +20,9 @@ func (e *Error) Unwrap() error { return e.Err }
 
 // Parse returns all records, or no records on failure. Numbers follow JSON
 // input's float64 model. Input is already read in full; there is no token limit.
-func Parse(raw []byte) ([]map[string]any, error) { return parse(raw, false) }
+func Parse(raw []byte) ([]map[string]any, error) { return parse(raw) }
 
-func parse(raw []byte, exactNumbers bool) ([]map[string]any, error) {
+func parse(raw []byte) ([]map[string]any, error) {
 	var records []map[string]any
 	for line := 1; len(raw) > 0; line++ {
 		record, rest, _ := bytes.Cut(raw, []byte{'\n'})
@@ -39,21 +40,15 @@ func parse(raw []byte, exactNumbers bool) ([]map[string]any, error) {
 			return fail(fmt.Errorf("blank records are not allowed"))
 		}
 		// Unmarshal enforces exactly one JSON value, including trailing data.
-		var data map[string]any
-		if err := json.Unmarshal(record, &data); err != nil {
+		var value any
+		if err := json.Unmarshal(record, &value); err != nil {
 			return fail(err)
 		}
-		if data == nil {
+		data, ok := value.(map[string]any)
+		if !ok {
 			return fail(fmt.Errorf("record must be a JSON object"))
 		}
-		if exactNumbers {
-			// Formatting preserves numeric values without float64 rounding.
-			dec := json.NewDecoder(bytes.NewReader(record))
-			dec.UseNumber()
-			if err := dec.Decode(&data); err != nil {
-				return fail(err)
-			}
-		}
+
 		records = append(records, data)
 	}
 	return records, nil
@@ -61,17 +56,19 @@ func parse(raw []byte, exactNumbers bool) ([]map[string]any, error) {
 
 // Format validates the entire file before producing minified, sorted records.
 func Format(raw []byte) ([]byte, error) {
-	records, err := parse(raw, true)
-	if err != nil {
+	if _, err := parse(raw); err != nil {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	for _, record := range records {
-		if err := enc.Encode(record); err != nil {
+	for len(raw) > 0 {
+		record, rest, _ := bytes.Cut(raw, []byte{'\n'})
+		raw = rest
+		value := jsontext.Value(bytes.Clone(record))
+		if err := value.Format(jsontext.ReorderRawObjects(true)); err != nil {
 			return nil, err
 		}
+		buf.Write(value)
+		buf.WriteByte('\n')
 	}
 	return buf.Bytes(), nil
 }

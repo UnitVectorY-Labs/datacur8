@@ -2,7 +2,8 @@ package tests
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"io/fs"
 	"os"
@@ -594,12 +595,12 @@ func compareJSON(t *testing.T, label, actual, expected string) {
 		return
 	}
 
-	actualNorm, _ := json.Marshal(actualJSON)
-	expectedNorm, _ := json.Marshal(expectedJSON)
+	actualNorm, _ := json.Marshal(actualJSON, json.Deterministic(true))
+	expectedNorm, _ := json.Marshal(expectedJSON, json.Deterministic(true))
 
 	if string(actualNorm) != string(expectedNorm) {
-		actualPretty, _ := json.MarshalIndent(actualJSON, "", "  ")
-		expectedPretty, _ := json.MarshalIndent(expectedJSON, "", "  ")
+		actualPretty, _ := json.Marshal(actualJSON, jsontext.WithIndent("  "), json.Deterministic(true))
+		expectedPretty, _ := json.Marshal(expectedJSON, jsontext.WithIndent("  "), json.Deterministic(true))
 		t.Errorf("%s: JSON differs\n--- expected ---\n%s\n--- actual ---\n%s",
 			label, string(expectedPretty), string(actualPretty))
 	}

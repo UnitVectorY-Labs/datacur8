@@ -3,6 +3,6 @@
     "level": "error",
     "file": "data/1.ndjson",
     "line": 1,
-    "message": "parsing JSONL/NDJSON: line 1: json: cannot unmarshal number 1e400 into Go struct field .n of type float64"
+    "message": "parsing JSONL/NDJSON: line 1: json: cannot unmarshal JSON number 1e400 into Go float64 within \"/n\": value out of range"
   }
 ]

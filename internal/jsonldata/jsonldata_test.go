@@ -2,7 +2,7 @@ package jsonldata
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"reflect"
 	"strings"
@@ -59,5 +59,16 @@ func TestFormatLargeRecordIdempotentAndExact(t *testing.T) {
 	formatted, err = Format(nil)
 	if err != nil || len(formatted) != 0 {
 		t.Fatalf("empty format: %q / %v", formatted, err)
+	}
+}
+
+func TestRejectDuplicateNames(t *testing.T) {
+	for _, raw := range []string{`{"a":1,"a":2}`, `{"outer":{"a":1,"a":2}}`} {
+		if _, err := Parse([]byte(raw)); err == nil {
+			t.Errorf("Parse accepted %s", raw)
+		}
+		if _, err := Format([]byte(raw)); err == nil {
+			t.Errorf("Format accepted %s", raw)
+		}
 	}
 }

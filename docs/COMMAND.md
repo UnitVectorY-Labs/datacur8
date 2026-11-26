@@ -215,3 +215,14 @@ writes nothing. Malformed records return **4** without rewriting that file.
 `.datacur8` remains YAML; `--format` selects diagnostics (`text|json|yaml`), not data
 encoding. See [JSONL / NDJSON input](/configuration#jsonl--ndjson-input) for framing,
 object-only restrictions, and JSON numeric precision limits.
+
+### JSON behavior
+
+JSON and JSONL/NDJSON input reject duplicate object names and invalid UTF-8,
+including in nested objects. Parsing errors use Go's JSON v2 diagnostics.
+JSON exports and diagnostic output use JSON v2: HTML characters such as `<`,
+`>` and `&` are emitted without HTML escaping, nil maps and slices encode as
+empty objects and arrays, and object keys in exports and tidy output are sorted.
+JSON v2 matches struct field names case-sensitively and applies `omitempty` to
+the encoded JSON value. JSONL tidy preserves numeric text without float64
+rounding; validation and export continue to use float64 for JSON numbers.
